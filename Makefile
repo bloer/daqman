@@ -155,12 +155,9 @@ doc:
 	@echo "Generating documentation..."
 	@doxygen doc/doxygen.cfg > /dev/null 2>&1
 
-libdir:
-	mkdir -p lib
-bindir:
-	mkdir -p bin
-
-libs: libdir $(BUILDLIBS) 
+lib:
+	mkdir -p $@
+libs: lib $(BUILDLIBS) 
 lib/libdaqman.so:  $(COMMON_OBJS)  
 	@echo "  [LD]  $@" 
 	@$(CXX) $(LDFLAGS) $(LIBFLAGS) $(LIBS) $^ -o $@ > /dev/null
@@ -173,9 +170,10 @@ $(DICT): $(DICTHEADS)
 	@echo "  [ROOTCINT] $@"
 	@rootcint -v -f $@ -c $(INCLUDES) $^ 
 
-$(BIN): bin/%: exe/%.o lib/libdaqman.so bindir 
+$(BIN): bin/%: exe/%.o lib/libdaqman.so  
 	@echo "  [LD]  $@" 
-	@$(CXX) $^ $(LDFLAGS) $(LIBS) -o $@ > /dev/null
+	@mkdir -p bin
+	@$(CXX) $(filter-out bindir,$^) $(LDFLAGS) $(LIBS) -o $@ > /dev/null
 
 $(OBJS): %.o: %.cc 
 	@echo "  [CXX] $<" 

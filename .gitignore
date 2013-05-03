@@ -4,5 +4,6 @@
 .deps*
 lib/*
 bin/*
-Dictionaries.[h,cc]
+Dictionaries.h
+Dictionaries.cc
 *~
