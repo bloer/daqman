@@ -1,0 +1,7 @@
+*.o
+*.a
+*.so
+lib/*
+bin/*
+Dictionaries.[h,cc]
+*~

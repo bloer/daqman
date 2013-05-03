@@ -1,0 +1,57 @@
+#!/bin/sh
+module="v1718.ko"
+device="v1718"
+group="root"
+mode="777"
+major=180
+script_path=`dirname $0`
+
+# 2> /dev/null
+#/sbin/rmmod $device 2> /dev/null
+/sbin/insmod -f $script_path/$module || exit 1
+
+if [ -d /dev/usb ];
+then
+  rm -f /dev/usb/${device}
+  rm -fr /dev/usb/${device}_*
+else
+  mkdir /dev/usb
+fi
+
+mknod /dev/usb/${device}_0 c $major 178
+mknod /dev/usb/${device}_1 c $major 179
+mknod /dev/usb/${device}_2 c $major 180
+mknod /dev/usb/${device}_3 c $major 181
+mknod /dev/usb/${device}_4 c $major 182
+mknod /dev/usb/${device}_5 c $major 183
+mknod /dev/usb/${device}_6 c $major 184
+mknod /dev/usb/${device}_7 c $major 185
+mknod /dev/usb/${device}_8 c $major 186
+mknod /dev/usb/${device}_9 c $major 187
+mknod /dev/usb/${device}_10 c $major 188
+mknod /dev/usb/${device}_11 c $major 189
+mknod /dev/usb/${device}_12 c $major 190
+mknod /dev/usb/${device}_13 c $major 191
+mknod /dev/usb/${device}_14 c $major 192
+mknod /dev/usb/${device}_15 c $major 193
+mknod /dev/usb/${device}_16 c $major 194
+mknod /dev/usb/${device}_17 c $major 195
+mknod /dev/usb/${device}_18 c $major 196
+mknod /dev/usb/${device}_19 c $major 197
+mknod /dev/usb/${device}_20 c $major 198
+mknod /dev/usb/${device}_21 c $major 199
+mknod /dev/usb/${device}_22 c $major 200
+mknod /dev/usb/${device}_23 c $major 201
+mknod /dev/usb/${device}_24 c $major 202
+mknod /dev/usb/${device}_25 c $major 203
+mknod /dev/usb/${device}_26 c $major 204
+mknod /dev/usb/${device}_27 c $major 205
+mknod /dev/usb/${device}_28 c $major 206
+mknod /dev/usb/${device}_29 c $major 207
+mknod /dev/usb/${device}_30 c $major 208
+mknod /dev/usb/${device}_31 c $major 209
+
+chown root   /dev/usb/${device}_*
+chgrp $group /dev/usb/${device}_*
+chmod $mode  /dev/usb/${device}_*
+

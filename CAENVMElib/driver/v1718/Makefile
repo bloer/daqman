@@ -1,0 +1,83 @@
+#=============================================================================
+#
+#             --- CAEN SpA - Computing Systems Division ---
+#
+#  Written by Stefano Coluccini (s.coluccini@caen.it) 
+#
+#  Makefile
+#
+#
+#  March  2004 :   Created.
+#
+#=============================================================================
+
+###############################
+# Kernel < 2.5
+###############################
+# KERNELREV:=$(shell uname -r)
+# KERNELSRC:=/lib/modules/$(KERNELREV)/build
+
+# # The include directory is right for RedHat systems, modify the
+# # kernel source location as appropriate for other distributions.
+# INCLUDE = $(KERNELSRC)/include/
+
+# COPTS   = -O2 -Wall -W -Wpointer-arith -Wcast-qual \
+#           -Wstrict-prototypes -Wmissing-prototypes \
+#           -Wmissing-declarations -Winline -Wcast-align
+
+# # Link-time flags to use
+# LDFLAGS=
+# # Additional link libraries
+# LIBS=
+
+# v1718.o: v1718.c Makefile
+# 	gcc -I${INCLUDE} -DMODULE -D__KERNEL__ -O -c v1718.c
+
+# all:	v1718.o
+
+# clean:
+# 	rm -f *.o core
+
+
+###############################
+# Kernel >= 2.5
+###############################
+# Comment/uncomment the following line to disable/enable debugging
+#DEBUG = y
+
+# Add your debugging flag (or not) to CFLAGS
+ifeq ($(DEBUG),y)
+  DEBFLAGS = -O -g # "-O" is needed to expand inlines
+else
+  DEBFLAGS = -O2
+endif
+
+CFLAGS += $(DEBFLAGS) -I$(LDDINCDIR)
+
+ifneq ($(KERNELRELEASE),)
+# call from kernel build system
+
+obj-m	:= v1718.o
+
+else
+
+KERNELDIR ?= /lib/modules/$(shell uname -r)/build
+PWD       := $(shell pwd)
+
+default:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) LDDINCDIR=$(PWD)/../include modules
+
+endif
+
+
+
+clean:
+	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
+
+depend .depend dep:
+	$(CC) $(CFLAGS) -M *.c > .depend
+
+
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif
