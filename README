@@ -1,0 +1,34 @@
+README for ConfigHandler configuration utility library
+
+****************************************************************************
+ConfigHandler is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+****************************************************************************
+
+1. Installing
+-------------
+No configuraiton or install utilities are provided. To compile, simply type
+ > make
+
+This library requires boost headers v1.35 or greater. 
+By default, the MessageHandler utitlies also require the boost_thread library
+to be installed. To bypass this requirement, compile with 
+ > make MULTIRHEAD=false
+
+In this case, Messages will not be thread safe, and will slow down the 
+thread in which they are issued.
+
+2. Usage
+-------------
+Todo
+
