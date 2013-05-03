@@ -61,7 +61,7 @@ int main(int argc, char** argv)
   
   
   try{
-    config->SetDefaultCfgFile("daqview.cfg");
+    config->SetDefaultCfgFile("cfg/daqview.cfg");
     config->ProcessCommandLine(argc,argv);
   }
   catch(std::exception& e){

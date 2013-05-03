@@ -183,7 +183,7 @@ int main(int argc, char** argv)
 
   try{
     //config->ReadFromFile("genroot.cfg");
-    config->SetDefaultCfgFile("genroot.cfg");
+    config->SetDefaultCfgFile("cfg/genroot.cfg");
     config->ProcessCommandLine(argc,argv);
   }
   catch(std::exception& e){
