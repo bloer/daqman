@@ -1,29 +1,10 @@
 /** @mainpage
     @section _installation_sec Installation
      
-    @subsection _cvs_sec Get the sources from CVS
-    The source code for daqman resides on the argus.princeton.edu server, in the
-    directory /srv/cvs.  The packages is named warpdaq/daqman . 
-    Users that have an argus account should checkout 
-    the sources using their personal login.  The simplest way to do this is
-    to define two environment variables: <br>
-      export CVS_RSH=ssh <br>
-      export CVSROOT=argus.princeton.edu:/srv/cvs
-
-    This method is particularly helpful when added to your .bashrc or other 
-    initialization file.  Users with these variables defined who have argus 
-    accounts should check out the source with the command <br>
-    cvs checkout warpdaq/daqman
-
-    Alternatively one can specify the cvsroot at the
-    command line, but having at least CVS_RSH specified is recommended. 
-    For users without argus accounts, anonymous checkout is possible, and 
-    should be done using the following command: 
-    
-    cvs -d :pserver:anonymous@argus.princeton.edu:/srv/cvs checkout 
-    warpdaq/daqman
-    
-    This will create a warpdaq folder, containing CVS and daqman folders. 
+    @subsection _git_sec Get the sources from git
+    The source code for daqman resides on github. You can clone 
+    the full repository via:
+    git clone https://github.com/bloer/daqman.git
     
     @subsection _compiling_sec Compiling the source code
     daqman requires several libraries to be installed and properly configured 
@@ -47,9 +28,7 @@
 
     @subsection _more_instructions Text of an email with some slightly more detailed instructions
     
-    As for daqman, you can get the source code from our cvs server using the anonymous login:
-cvs -d :pserver:anonymous@argus.princeton.edu:/srv/cvs checkout warpdaq/daqman
-Documentation on installing and using it is sparse; what does exist is in this doxygen site.  
+    Documentation on installing and using it is sparse; what does exist is in this doxygen site.  
 
 I assume you're running some flavor of linux; I've made no attempt to get anything to work under windows.  In order to compile, you'll need to have installed and properly configured the CAENVME library, which you can get from CAEN's website, the makedepend tool, ROOT version 5.24 or greater, and boost 1.38 or greater (at least the thread, date-time, and smart ptr libraries).   I haven't been ambitious enough to write any configure scripts or anything, so you're kind of on your own for figuring out when things go wrong with the make process (though of course you can email me, and I'll try to answer as best as I can).  In particular, the boost libraries get different naming conventions on different distros, so it may be necessary to make a link from boost_<lib>-mt.so to boost_<lib>.so or vice verse.
 
