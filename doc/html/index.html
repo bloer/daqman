@@ -29,16 +29,9 @@
 <p>
 <h2><a class="anchor" name="_installation_sec">
 Installation</a></h2>
-<h3><a class="anchor" name="_cvs_sec">
-Get the sources from CVS</a></h3>
-The source code for daqman resides on the argus.princeton.edu server, in the directory /srv/cvs. The packages is named warpdaq/daqman . Users that have an argus account should checkout the sources using their personal login. The simplest way to do this is to define two environment variables: <br>
- export CVS_RSH=ssh <br>
- export CVSROOT=argus.princeton.edu:/srv/cvs<p>
-This method is particularly helpful when added to your .bashrc or other initialization file. Users with these variables defined who have argus accounts should check out the source with the command <br>
- cvs checkout warpdaq/daqman<p>
-Alternatively one can specify the cvsroot at the command line, but having at least CVS_RSH specified is recommended. For users without argus accounts, anonymous checkout is possible, and should be done using the following command:<p>
-cvs -d :pserver:<a href="mailto:anonymous@argus.princeton.edu">anonymous@argus.princeton.edu</a>:/srv/cvs checkout warpdaq/daqman<p>
-This will create a warpdaq folder, containing CVS and daqman folders.<h3><a class="anchor" name="_compiling_sec">
+<h3><a class="anchor" name="_git_sec">
+Get the sources from git</a></h3>
+The source code for daqman resides on github. You can clone the full repository via: git clone <a href="https://github.com/bloer/daqman.git">https://github.com/bloer/daqman.git</a><h3><a class="anchor" name="_compiling_sec">
 Compiling the source code</a></h3>
 daqman requires several libraries to be installed and properly configured in order to compile and link fully. Development versions of the libraries (i.e. including the header files) are required. The required libraries are:<p>
 <ul>
@@ -48,7 +41,7 @@ In addition, to compile the <em>daqman</em> executable which talks to hardware d
 Once all the required dependencies are installed in the default system locations (include and library paths), one should be able to compile the whole distribution by calling 'make'. One can pass options to the compiler by using the DEBUGFLAGS variable. I.e., to compile with optimizations, call ' make DEBUGFLAGS=-O2 '.<p>
 If it doesn't compile I assume it's your fault :P<h3><a class="anchor" name="_more_instructions">
 Text of an email with some slightly more detailed instructions</a></h3>
-As for daqman, you can get the source code from our cvs server using the anonymous login: cvs -d :pserver:<a href="mailto:anonymous@argus.princeton.edu">anonymous@argus.princeton.edu</a>:/srv/cvs checkout warpdaq/daqman Documentation on installing and using it is sparse; what does exist is in this doxygen site.<p>
+Documentation on installing and using it is sparse; what does exist is in this doxygen site.<p>
 I assume you're running some flavor of linux; I've made no attempt to get anything to work under windows. In order to compile, you'll need to have installed and properly configured the CAENVME library, which you can get from CAEN's website, the makedepend tool, <a class="el" href="namespaceROOT.html">ROOT</a> version 5.24 or greater, and boost 1.38 or greater (at least the thread, date-time, and smart ptr libraries). I haven't been ambitious enough to write any configure scripts or anything, so you're kind of on your own for figuring out when things go wrong with the make process (though of course you can email me, and I'll try to answer as best as I can). In particular, the boost libraries get different naming conventions on different distros, so it may be necessary to make a link from boost_&lt;lib&gt;-mt.so to boost_&lt;lib&gt;.so or vice verse.<p>
 Hardware wise, you'll need the digitizer itself and the A2818 PCI-fiber interface from CAEN for communication. It should work either connected directly to the fiber interface on the digitizer or using a V2718 crate controller. At various points, we've had this software working with V1720, V1721, V1724, and V1731. It's been a while though, so I won't guarantee anything but the V1720 at this point; each needed some very slight modifications since CAEN can't bother to keep to standard specs. I've also had issues with the A2818 driver in some linux flavors, and occasionally had to modify its source code to deal with it looking for deprecated headers. I've also had it refuse to stay installed over a reboot.<p>
 If you manage to get this far and get everything compiled, the first thing to try is the boardcheck program. Its purpose is to scan the provided address section of the VME bus and see what boards are there. It expects a range of addresses, so if your boards address (defined by the four rotary dials on the back of the digitizer) is 3210 (which I think is default), you would call './boardcheck 32100000 32100000'. It hasn't been updated in a while, so it may tell you that the type of board is unknown; the important thing is whether it finds it or not. If it doesn't find it, the most common causes I've found are that the a2818 driver isn't properly installed (to check you can do 'lsmod | grep a2818') or some VME crates don't have the full +12V line, which these boards need.<p>
@@ -86,7 +79,7 @@ ifdef __CINT__ <br>
 <p>
 Notice the trailing + at the end of every link command. If you try to link Container before vector&lt;MyClass&gt;, it will not work.<h2><a class="anchor" name="_add_daqroot_sec">
 Adding functions to daqroot</a></h2>
-To add classes to the daqroot environment, use the instructrions above to add the classes to the LinkDef file and use the ClassDef macro. In order to add functions at the global scope, All one has to do is add the word ClassDef somewhere in the header file which defines the function, and the Makefile should take care of the rest. <hr size="1"><address style="align: right;"><small>Generated on Tue Jun 25 13:42:35 2013 for daqman by&nbsp;
+To add classes to the daqroot environment, use the instructrions above to add the classes to the LinkDef file and use the ClassDef macro. In order to add functions at the global scope, All one has to do is add the word ClassDef somewhere in the header file which defines the function, and the Makefile should take care of the rest. <hr size="1"><address style="align: right;"><small>Generated on Tue Jun 25 14:33:31 2013 for daqman by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>
