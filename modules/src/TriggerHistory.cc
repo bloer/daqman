@@ -23,6 +23,13 @@ TriggerHistory::TriggerHistory(const std::string& name) :
 		    "Minimum seconds between each point on history plot");
   RegisterParameter("max_points", _max_points = 100,
 		    "Maximum points in graph before scrolling");
+  RegisterParameter("draw_errors_x", _draw_errors_x = true,
+		    "Draw error bars for the time axis?");
+  RegisterParameter("draw_errors_y", _draw_errors_y = true,
+		    "Draw error bars for the y axis?");
+  RegisterParameter("connect_points", _connect_points = false,
+		    "Draw a straight line connecting each point?");
+  
 }
 
 TriggerHistory::~TriggerHistory()
@@ -104,15 +111,19 @@ int TriggerHistory::Process(EventPtr evt)
     }
     
     _triggergraph->SetPoint(point, tavg, ntrigs/(2*terr));
-    _triggergraph->SetPointError(point,terr, sqrt(ntrigs)/(2*terr));
+    _triggergraph->SetPointError(point,
+			  _draw_errors_x ? terr : 0., 
+			  _draw_errors_y ? sqrt(ntrigs)/(2*terr) : 0.);
     _eventgraph->SetPoint(point, tavg, nevts/(2*terr));
-    _eventgraph->SetPointError(point, terr, sqrt(nevts)/(2*terr));
+    _eventgraph->SetPointError(point, 
+			       _draw_errors_x ? terr : 0., 
+			       _draw_errors_y ? sqrt(nevts)/(2*terr):0.);
     //trick to make multigraph recalculate range
     TH1* hist = _multigraph->GetHistogram();
     if(hist)
       hist->SetMinimum(hist->GetMaximum());
     
-    _multigraph->Draw("ae");
+    _multigraph->Draw(_connect_points ? "ale" : "ae");
     
     
     _last_update_time = raw->GetTimestamp();
@@ -123,7 +134,7 @@ int TriggerHistory::Process(EventPtr evt)
     _legend->AddEntry(_triggergraph,
 		      Form("Triggers (%u total)",_last_triggerid),"l");
     _legend->AddEntry(_eventgraph,
-		      Form("Events Recorded (%u total)",_last_eventid),"l");
+		      Form("Events Recorded (%u total)",_last_eventid+1),"l");
   
     _legend->Draw();
     
