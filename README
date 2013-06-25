@@ -1,5 +1,10 @@
 Notes on compiling, running, etc with the daqman system:
 
+General info on daqman can be found on the github pages:
+[http://bloer.github.io/daqman](http://bloer.github.io/daqman)
+In particular, there is some doxygen code documentation at 
+[http://bloer.github.io/daqman/doc/html](http://bloer.github.io/daqman/doc/html)
+
 Adding a ROOT class for saving:
 Two steps are necessary to generate a new dictionary to store a class in a ROOT file or tree.  First, in the class header file, you must call the macro 
     ClassDef(CLASSNAME,VERSION)
