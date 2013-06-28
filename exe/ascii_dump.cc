@@ -8,6 +8,7 @@
 #include "CommandSwitchFunctions.hh"
 #include "EventHandler.hh"
 #include "AsciiWriter.hh"
+#include "ConvertData.hh"
 
 #include <cstdlib>
 #include <string>
@@ -86,6 +87,7 @@ int main(int argc, char** argv)
   
   EventHandler* modules = EventHandler::GetInstance();
   //modules->AddCommonModules();
+  modules->AddModule<ConvertData>();
   AsciiWriter* writer = modules->AddModule<AsciiWriter>();
 
   try{
