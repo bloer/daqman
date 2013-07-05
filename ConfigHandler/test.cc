@@ -13,22 +13,29 @@ int PrintHelp(const char*)
 
 int main(int argc, char** argv)
 {
-  MESSAGE_LEVEL verbosity = INFO;
+
   ConfigHandler* config = ConfigHandler::GetInstance();
-  config->AddCommandSwitch('v',"","increment verbosity",
-			   CommandSwitch::Decrement<MESSAGE_LEVEL>(verbosity));
-  config->AddCommandSwitch('q',"","decrement verbosity",
-			   CommandSwitch::Increment<MESSAGE_LEVEL>(verbosity));
-  config->AddCommandSwitch(' ',"verbosity","set verbosity to <verbosity>",
-			   CommandSwitch::DefaultRead<MESSAGE_LEVEL>(verbosity),
-			   "verbosity");
-  config->AddCommandSwitch('h',"help","Display this help page",PrintHelp);
+  config->SetProgramUsageString("test [<options>]");
+  config->SetProgramDescription("This program tests some ConfigHandler features");
   
+  ParameterList pl1("myparams","A sample parameter list");
+  double x1;
+  int y;
+  std::string z, z2;
+  phrase p;
+  pl1.RegisterParameter("x",x1=3.14159,"A double precision value");
+  pl1.RegisterParameter("y", y=-2, "An integer");
+  pl1.RegisterParameter("z",z="HelloWorld","A string");
+  pl1.RegisterParameter("p1", p = "I am a longer string with spaces!",
+			"A string that may contain spaces");
+  pl1.RegisterParameter("empty", z2="", "An empty string");
+  config->RegisterParameter("myparams",pl1, "Something else");
+
   try{
     config->ProcessCommandLine(argc,argv);
   }
   catch(...){}
-  MessageHandler::GetInstance()->SetThreshold(verbosity);
+  
   Message(DEBUG)<<"I will not print by default"<<std::endl;
   Message(INFO)<<"I am plain"<<std::endl;
   Message(WARNING)<<"I am yellow!"<<std::endl;

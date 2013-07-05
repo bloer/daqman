@@ -173,11 +173,11 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
 
 }
 
-std::ostream& ParameterList::WriteTo( std::ostream& out, int indent)
+std::ostream& ParameterList::WriteTo( std::ostream& out, bool showhelp,
+				      int indent)
 {
   if(_parameters.empty())
     InitializeParameterList();
-  const int paramsPerLine = 3; 
   std::stringstream dummy;
   dummy<<'\n';
   for(int i=0; i < indent; i++)
@@ -185,39 +185,21 @@ std::ostream& ParameterList::WriteTo( std::ostream& out, int indent)
   const std::string newline = dummy.str();
 
   //print an opening parenthesis to mark the beginning
-  out<<"( ";
+  out<<"( "<<newline;
   ParMap::iterator mapit;
   mapit = _parameters.begin();
-  int printed = 0;
   //Loop over all the parameters in the map and pass the stream to them
   while( !out.fail() && mapit != _parameters.end() ){
     int node_type = mapit->second->GetNodeType();
-    if(node_type == PARAMETER_LIST){
-      printed = 0;
-      out<<newline<<(mapit->first)<<" ";
-      (mapit->second)->WriteTo(out,indent+1);
-      mapit++;
-      if(mapit!=_parameters.end() && 
-	 mapit->second->GetNodeType() != PARAMETER_LIST)
-	out<<newline;      
-    }
-    else{
-      if( ++printed + indent/2 > paramsPerLine){
-	printed=0;
-	out<<newline;
-      }
-      if(node_type != FUNCTION)
+    if(showhelp) out<<newline<<"# "<<mapit->second->GetHelpText()<<newline;
+    if(node_type != FUNCTION)
 	out<<(mapit->first)<<" ";
-      out<<*(mapit->second);
-      ++mapit;
-      if( mapit != _parameters.end() && 
-	  !(dynamic_cast<ParameterList*>(mapit->second)) )
-	out<<" , ";
-    }
+    mapit->second->WriteTo(out, showhelp, indent+1);
+    out<<newline;
+    ++mapit;
   }
-  out<<" )";
-  if(indent == 0) 
-    out<<'\n';
+  out<<(showhelp ? newline : "")<<")" << (showhelp ? " #end list" : "");
+  out.flush();
   return out;
 }
 

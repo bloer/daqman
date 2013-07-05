@@ -6,14 +6,14 @@
 #include "Message.hh"
 #include <fstream>
 #include <typeinfo>
-bool VParameterNode::SaveToFile(const char *fname)
+bool VParameterNode::SaveToFile(const char *fname, bool showhelp)
 {
   std::ofstream fout(fname);
   if(fout.fail()){
     Message(ERROR)<<"Unable to open file "<<fname<<" for writing."<<std::endl;
     return false;
   }
-  return WriteTo(fout);
+  return WriteTo(fout, showhelp);
 }
 
 bool VParameterNode::ReadFromFile(const char *fname, const std::string& key,
