@@ -129,7 +129,7 @@ public:
   SIGNAL_LOGIC signal_logic;           ///< use NIM or TTL signals?
   bool enable_test_pattern;            ///< generate a test pattern internally?
   uint32_t acq_control_val;            ///< determines startup mode
-  static const int MAXCHANS = 4;       ///< max hardware channels per board?
+  static const int MAXCHANS = 8;       ///< max hardware channels per board?
   int nchans;                          ///< actual num channels on this unit
   static const int Nth_factor = 4;     ///< how many samples in the trigger time
   V172X_ChannelParams channel[MAXCHANS]; ///< parameters for each channel
