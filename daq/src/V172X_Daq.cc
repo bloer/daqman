@@ -75,21 +75,25 @@ V172X_Daq::~V172X_Daq()
     if(_params.board[i].enabled && _params.board[i].link > 0 && _params.board[i].link != _params.vme_bridge_link) CAENVME_End(_handle_board[i]);
 }
 
-int init_link (int link, int32_t *handle) {
-  CVErrorCodes err = CAENVME_Init(cvV2718, link, 0, handle);
+int init_link (int link, bool usb, int32_t *handle) {
+  CVErrorCodes err = CAENVME_Init(usb ? cvV1718 : cvV2718 , link, 0, handle);
   if(err != cvSuccess){
     Message m(ERROR);
-    m<<"Unable to initialize CAEN VME bridge for link " << link << ": "<<std::endl;
+    m<<"Unable to initialize CAEN VME bridge for link " << link;
+    if(usb) m<<" on USB ";
+    m<< ": "<<std::endl;
     m<<"\t"<<CAENVME_DecodeError(err)<<std::endl;
     return -1;
   }
   char message[100];
-  Message(DEBUG)<<"CAEN VME bridge successfully initialized for link " << link << "!"<<std::endl;
+  Message(DEBUG)<<"CAEN VME bridge successfully initialized for link " 
+		<< link << "!"<<std::endl;
   CAENVME_BoardFWRelease(*handle,message);
   Message(DEBUG)<<"\tFirmware Release: "<<message<<std::endl;
   CAENVME_DriverRelease(*handle,message);
   Message(DEBUG)<<"\tDriver Release: "<<message<<std::endl;
-  Message(INFO)<< "Link " << link << " initialized on handle " << *handle <<std::endl;
+  Message(INFO)<< "Link " << link << " initialized on handle " 
+	       << *handle <<std::endl;
   return 0;
 }
 
@@ -105,7 +109,7 @@ int V172X_Daq::Initialize()
   }
       
   if (_params.vme_bridge_link >= 0) {
-    if (init_link (_params.vme_bridge_link, &_handle_vme_bridge) < 0) {
+    if (init_link (_params.vme_bridge_link, false, &_handle_vme_bridge) < 0) {
       _status=INIT_FAILURE;
       return -1;
     }
@@ -130,8 +134,12 @@ int V172X_Daq::Initialize()
   }
 
   for(int i=0; i < _params.nboards; i++) {
-    if(_params.board[i].enabled && _params.board[i].link >= 0 && _params.board[i].link != _params.vme_bridge_link) {
-      if (init_link (_params.board[i].link, _handle_board + i) < 0) {
+    if(_params.board[i].enabled && 
+       ( ( _params.board[i].link >= 0 && 
+	 _params.board[i].link != _params.vme_bridge_link )
+	 || _params.board[i].usb ) ){
+      if (init_link (_params.board[i].link, _params.board[i].usb, 
+		     _handle_board + i) < 0) {
 	_status=INIT_FAILURE;
 	return -3;
       }
@@ -166,6 +174,7 @@ int V172X_Daq::InitializeBoard(int boardnum)
   WriteVMERegister(board.address + VME_SWReset, 1, _handle_board[boardnum]);
   uint32_t data = ReadVMERegister(board.address+VME_BoardInfo, _handle_board[boardnum]);
   board.board_type = (BOARD_TYPE)(data&0xFF);
+  board.nchans = (data>>16)&0xFF;
   board.mem_size = (data>>8)&0xFF;
   if(board.UpdateBoardSpecificVariables()){ //returns -1 on error
     Message(CRITICAL)<<"Board "<<boardnum<<" with address "
@@ -376,15 +385,41 @@ void V172X_Daq::DataAcquisitionLoop()
       irq_handle = _handle_board[i]; 
       if (_params.board[i].enabled && _params.board[i].link >= 0) break;
     }
+  
+  //figure out whether we can use interrupts
+  //usb interface can't do interrupts, so use polling only
+  
+  bool use_interrupt = true;
+  for(int i=0; i<_params.nboards; i++){
+    if(_params.board[i].enabled && _params.board[i].usb) 
+      use_interrupt = false;
+  }
+
+  
   while(_is_running ){
-    //DON'T check to see if data is ready, just go to interrupt
-    //may be slightly slower, but much more stable
+
+    CVErrorCodes err = cvTimeoutError;
     
-    //Enable IRQ lines and wait for an interrupt
-    CAENVME_IRQEnable(irq_handle,0xFF);
-    CVErrorCodes err = CAENVME_IRQWait(irq_handle,0xFF,
-				       _params.trigger_timeout_ms);
-    CAENVME_IRQDisable(irq_handle,0xFF);
+    if(use_interrupt){
+      //Enable IRQ lines and wait for an interrupt
+      CAENVME_IRQEnable(irq_handle,0xFF);
+      err = CAENVME_IRQWait(irq_handle,0xFF,
+					 _params.trigger_timeout_ms);
+      CAENVME_IRQDisable(irq_handle,0xFF);
+    }
+    else{
+      for(int i=0; i<_params.nboards; i++){
+	if(!_params.board[i].enabled) continue;
+	//see if there is an event ready on the board
+	if(DataAvailable(ReadVMERegister(_params.board[i].address+
+					 VME_AcquisitionStatus, 
+					 _handle_board[i])) ){
+	  err = cvSuccess;
+	  break;
+	}
+      }
+    }
+
     //Check to see if there was an interrupt or just the timeout
     switch(err){
     case cvSuccess:
@@ -393,6 +428,11 @@ void V172X_Daq::DataAcquisitionLoop()
       Message(DEBUG)<<"Generic error occurred. Probably just a timeout...\n";
       //notice: no break here!
     case cvTimeoutError:
+      if(!use_interrupt){
+	//sleep for the timeout interval
+	boost::this_thread::sleep(
+	    boost::posix_time::millisec(_params.trigger_timeout_ms));
+      }
       if(_params.auto_trigger){
 	Message(DEBUG)<<"Triggering...\n";
 	WriteVMERegisters(VME_SWTrigger,1);

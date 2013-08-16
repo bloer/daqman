@@ -60,9 +60,13 @@ V172X_BoardParams::V172X_BoardParams() :
 		    "Address of the board on the VME crate (set in hardware)");
   RegisterParameter("link", link = 0,
 		    "Board optical link number");
+  RegisterParameter("usb", usb = false,
+		    "Connect through USB instead of optical link?");
   RegisterParameter("id", id = -1, "Software id of the board");
   RegisterParameter("board_type", board_type = OTHER,
 		    "Specific model of digitizer (V1720, V1724, V1721)");
+  RegisterParameter("nchans", nchans = MAXCHANS, 
+		    "actual number of channels on this unit");
   RegisterParameter("v_full_scale", v_full_scale = 2,
 		    "Full scale range in voltage of the digitizer input");
   RegisterParameter("stupid_size_factor", stupid_size_factor = 1);
@@ -111,7 +115,7 @@ V172X_BoardParams::V172X_BoardParams() :
   //RegisterParameter("acq_control_val", 
   //acq_control_val =  ( 1<<4 * (downsample_factor > 1) + 
   //1<<3 * count_all_triggers ) ); 
-  for(int i=0; i<nchans; i++){
+  for(int i=0; i<MAXCHANS; i++){
     char key[20];
     sprintf(key,"channel%d",i);
     RegisterParameter(key,channel[i]);
@@ -142,7 +146,7 @@ V172X_Params::V172X_Params() : ParameterList("V172X_Params")
     sprintf(key,"board%d",i);
     RegisterParameter(key,board[i]);
     board[i].id = i;
-    for(int j=0; j<board[i].nchans; j++){
+    for(int j=0; j<board[i].MAXCHANS; j++){
       sprintf(key,"b%dch%d",i,j);
       board[i].channel[j].label = key;
     }

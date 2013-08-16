@@ -103,6 +103,7 @@ public:
   int id;                              ///< unique id number for this board
   uint32_t address;                    ///< this board's VME address
   int link;			       ///< the caenvmelib link number for this board or the vme bridge
+  bool usb;                            ///< connect through usb instead of optical link? 
   BOARD_TYPE board_type;               ///< type of V172X digitizer
   double v_full_scale;                 ///< full scale range of input
   int stupid_size_factor;              ///< determines packing of samples in mem
@@ -128,9 +129,10 @@ public:
   SIGNAL_LOGIC signal_logic;           ///< use NIM or TTL signals?
   bool enable_test_pattern;            ///< generate a test pattern internally?
   uint32_t acq_control_val;            ///< determines startup mode
-  static const int nchans = 8;         ///< how many channels per board?
+  static const int MAXCHANS = 8;       ///< max hardware channels per board?
+  int nchans;                          ///< actual num channels on this unit
   static const int Nth_factor = 4;     ///< how many samples in the trigger time
-  V172X_ChannelParams channel[nchans]; ///< parameters for each channel
+  V172X_ChannelParams channel[MAXCHANS]; ///< parameters for each channel
 
   //utility functions
   /// Get the sample rate used, in samples per microsecond
