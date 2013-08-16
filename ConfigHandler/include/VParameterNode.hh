@@ -27,7 +27,7 @@ public:
   virtual ~VParameterNode() {}
   
   /// Save this parameter to a file
-  virtual bool SaveToFile(const char* fname);
+  virtual bool SaveToFile(const char* fname, bool showhelp=false);
   /// Read this parameter froma file by name <key>
   virtual bool ReadFromFile(const char* fname, const std::string& key="",
 			    bool suppress_errs=false);
@@ -38,7 +38,8 @@ public:
 				       const std::string& key,
 				       bool suppress_errs=false);
   /// Write this parameter to an ostream
-  virtual std::ostream& WriteTo( std::ostream& out , int indent=0)=0;
+  virtual std::ostream& WriteTo( std::ostream& out , bool showhelp=false, 
+				 int indent=0)=0;
   /// Get the default name of this parameter
   const std::string& GetDefaultKey() const { return _default_key; }
   /// Set the default name of this parameter
@@ -47,6 +48,12 @@ public:
   int GetNodeType(){ return _node_type; }
   /// Print information about this parameter, and travel the tree
   virtual int PrintHelp(const std::string& myname="") const;
+  
+  /// Get the associated help text
+  const std::string& GetHelpText(){ return _helptext; }
+  /// Set the associated help text
+  void SetHelpText(const std::string& newtext){ _helptext = newtext; }
+
 protected:
   /** @enum NODE_TYPES
       @brief Different types of nodes inheriting from VParameterNode

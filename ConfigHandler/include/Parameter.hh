@@ -45,7 +45,7 @@ protected:
   /// Read the underlying variable from an istream
   virtual std::istream& ReadFrom( std::istream& in , bool single=false);
   /// Write the underlying variable to an ostream
-  virtual std::ostream& WriteTo( std::ostream& out , int);
+  virtual std::ostream& WriteTo( std::ostream& out , bool, int);
   /// Read unsigned integers from istreams possibly in hex format
   virtual unsigned long ReadUnsignedInt(std::istream& in){
     std::string temp;
@@ -72,7 +72,7 @@ inline std::istream& Parameter<T>::ReadFrom(std::istream& in, bool)
 }
 
 template<class T>
-inline std::ostream& Parameter<T>::WriteTo(std::ostream& out, int)
+inline std::ostream& Parameter<T>::WriteTo(std::ostream& out, bool, int)
 {
   return out<<_val;
 }
@@ -92,7 +92,7 @@ inline int Parameter<T>::PrintHelp(const std::string& myname) const
 }
 
 /// Specific ostream overload for booleans
-template<> inline std::ostream& Parameter<bool>::WriteTo(std::ostream& out, int)
+template<> inline std::ostream& Parameter<bool>::WriteTo(std::ostream& out, bool, int)
 {
   return out<<std::boolalpha<<_val<<std::noboolalpha;
 }
@@ -115,31 +115,31 @@ template<> inline std::istream& Parameter<bool>::ReadFrom(std::istream& in, bool
 }
 
 /// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned>::WriteTo(std::ostream& out, int)
+template<> inline std::ostream& Parameter<unsigned>::WriteTo(std::ostream& out, bool, int)
 {
   return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
 }
 
 /// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned char>::WriteTo(std::ostream& out, int)
+template<> inline std::ostream& Parameter<unsigned char>::WriteTo(std::ostream& out, bool,int)
 {
   return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
 }
 
 /// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned short>::WriteTo(std::ostream& out, int)
+template<> inline std::ostream& Parameter<unsigned short>::WriteTo(std::ostream& out, bool, int)
 {
   return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
 }
 
 /// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned long>::WriteTo(std::ostream& out, int)
+template<> inline std::ostream& Parameter<unsigned long>::WriteTo(std::ostream& out, bool, int)
 {
   return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
 }
 
 /// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned long long>::WriteTo(std::ostream& out, int)
+template<> inline std::ostream& Parameter<unsigned long long>::WriteTo(std::ostream& out, bool, int)
 {
   return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
 }
@@ -174,4 +174,24 @@ template<> inline std::istream& Parameter<unsigned long long>::ReadFrom(std::ist
   _val = ReadUnsignedInt(in); return in;
 }
 
+///Override std::string's to let "" be an empty string
+template<> inline std::istream& Parameter<std::string>::ReadFrom(std::istream& in, bool)
+{
+  std::string temp;
+  if(in>>temp){
+    if(temp == "\"\"")
+      _val = "";
+    else 
+      _val = temp;
+  }
+  return in;
+}
+
+///Override std::string's to let "" be an empty string
+template<> inline std::ostream& Parameter<std::string>::WriteTo(std::ostream& out, bool, int)
+{
+  if(_val == "")
+    return out<<"\"\"";
+  return out<<_val;
+}
 #endif

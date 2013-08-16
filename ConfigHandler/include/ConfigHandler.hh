@@ -68,11 +68,16 @@ public:
   int RemoveCommandSwitch(char shortname, const std::string& longname);
   
   ///Prints info for the registered switches
-  void PrintSwitches(bool quit=true);
+  void PrintSwitches(bool quit=true, std::ostream& out = std::cout,
+		     bool escape=false);
   ///Set the usage string given by the '-h' or '--help' options
   void SetProgramUsageString(const std::string& usage){ _program_usage=usage;}
   /// Get the program usage string
   std::string GetProgramUsageString(){ return _program_usage; }
+  /// Set the program's description
+  void SetProgramDescription(const std::string& d){ _program_description=d;}
+  /// Get the program's description
+  std::string GetProgramDescription(){ return _program_description; }
   
   ///Process the command line for the registered switches.
   ///Returns the number of non-switch arguments remaining, neg value if error
@@ -108,6 +113,7 @@ public:
   
 private:
   std::string _program_usage;      ///< String detailing how to use program
+  std::string _program_description; ///< String describing the program
 
   phrase _notes;                      ///< specify comments in a config file
   std::string _default_cfg_file;    ///< default config file for this program

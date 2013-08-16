@@ -36,7 +36,8 @@ public:
   ~ConfigFunctor(){}
   
   std::istream& ReadFrom(std::istream& in, bool dummy=0){ return reader(in);}
-  std::ostream& WriteTo(std::ostream& out, int dummy=0){ return writer(out);}
+  std::ostream& WriteTo(std::ostream& out, bool dummy1=0, int dummy=0)
+  { return writer(out);}
 private:
   readfunc reader;
   writefunc writer;

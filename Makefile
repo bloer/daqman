@@ -109,7 +109,7 @@ NEEDCAEN     := $(sort $(NEEDCAEN))
 NEEDCAEN     := $(patsubst %.o:,%.o,$(NEEDCAEN))
 OBJS         := $(filter-out $(NEEDCAEN),$(OBJS))
 COMMON_OBJS  := $(filter-out $(NEEDCAEN),$(COMMON_OBJS))
-BIN	     := $(filter-out $(NEEDCAEN:./exe/%.o=%),$(BIN))
+BIN	     := $(filter-out $(NEEDCAEN:./exe/%.o=bin/%),$(BIN))
 else
 LIBS         += $(CAENLIBS)
 endif

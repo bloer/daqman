@@ -33,6 +33,9 @@ private:
   uint32_t _last_eventid;
   int _update_interval;
   int _max_points;
+  bool _draw_errors_x;
+  bool _draw_errors_y;
+  bool _connect_points;
 };
 
 
