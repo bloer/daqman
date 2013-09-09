@@ -5,7 +5,6 @@
 #include "EventHandler.hh"
 #include "RunDB.hh"
 #include "ConfigHandler.hh"
-#include "MC_Params.hh"
 #include <vector>
 
 
@@ -35,7 +34,6 @@ ConvertData::ConvertData():
   RegisterFunction(ChOffsetLoader::GetFuncName(), ChOffsetLoader(this),
 		   ChOffsetLoader(this));
   _v172X_params = 0;
-  _mc_params = 0;
   _headers_only = false;
 }
 
@@ -71,16 +69,8 @@ int ConvertData::Initialize()
     _v172X_params->GetEventSize();
   }
   
-  //Try to load Monte Carlo information
-  //mc info only comes from saved config files
-  if(config->GetSavedCfgFile() != "")
-    err = config->LoadCreateParameterList(_mc_params);
-  if(_mc_params){
-    if(EventHandler::GetInstance()->GetRunID()==-1)
-      EventHandler::GetInstance()->SetRunID(_mc_params->mch_run_number);
-  }
   
-  if(!_v172X_params && !_mc_params){
+  if(!_v172X_params){
      Message(ERROR)<<"Unable to load saved configuration information!\n";
      return 1;
   }
@@ -96,7 +86,6 @@ int ConvertData::Finalize()
 {   
   //reset the parameter lists
   _v172X_params = 0;
-  _mc_params = 0;
   if(_id_mismatches){
     Message(WARNING)<<_id_mismatches<<" events had mismatched IDs!\n";
   }
@@ -128,10 +117,6 @@ int ConvertData::Process(EventPtr event)
 		      data);
       break;
     case RawEvent::MONTECARLO :
-      DecodeMCData(raw->GetRawDataBlock(blocknum),
-		   raw->GetDataBlockSize(blocknum),
-		   data);
-      break;
     default :
       Message(ERROR)<<"Decoding has not yet been implemented for block type "
 		    <<raw->GetDataBlockType(blocknum)<<"\n";
@@ -380,46 +365,3 @@ int ConvertData::DecodeV172XData(const unsigned char* rawdata,
   return 0;
 }
 
-int ConvertData::DecodeMCData(const unsigned char* rawdata, 
-			      uint32_t datasize, 
-			      EventDataPtr data)
-{
-  const unsigned sample_bits = 12;
-  const unsigned bytes_per_samp = 2;
-  //make sure the data size makes sense
-  uint32_t chsize = _mc_params->mch_number_of_samples * bytes_per_samp;
-  uint32_t config_datasize = _mc_params->mch_number_of_channels * chsize;
-  if(datasize != config_datasize){
-    Message(ERROR)<<"Mismatched Monte Carlo datasize! Expect "<<config_datasize
-		  <<"; raw data reads "<<datasize<<"\n";
-    return 1;
-  }
-  
-  //copy over all events
-  data->channels.resize(_mc_params->mch_number_of_channels);
-  for(size_t ch=0; ch<data->channels.size(); ch++){
-    ChannelData& chdata = data->channels[ch];
-    chdata.channel_num = ch;
-    chdata.channel_id = ch;
-    chdata.sample_bits = sample_bits;
-    chdata.sample_rate = 1000./(1.*_mc_params->mch_sampling_time);
-    chdata.trigger_index = _mc_params->mch_trigger_delay;
-    chdata.nsamps = _mc_params->mch_number_of_samples;
-    chdata.channel_start = (char*)(rawdata + chsize*ch);
-    chdata.channel_end = (char*)(chdata.channel_start + chsize);
-    if(bytes_per_samp == 1)
-      chdata.waveform.assign((uint8_t*)chdata.channel_start,
-			     (uint8_t*)chdata.channel_end);
-    else if(bytes_per_samp == 2)
-      chdata.waveform.assign((uint16_t*)chdata.channel_start,
-			     (uint16_t*)chdata.channel_end);
-    else if(bytes_per_samp == 3 || bytes_per_samp == 4)
-      chdata.waveform.assign((uint32_t*)chdata.channel_start,
-			     (uint32_t*)chdata.channel_end);
-    else
-      chdata.waveform.assign((uint64_t*)chdata.channel_start,
-			     (uint64_t*)chdata.channel_end);
-  }//end loop over channels
-  return 0;
-    
-}

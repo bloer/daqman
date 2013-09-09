@@ -38,9 +38,6 @@
 #pragma link C++ class RunDB::runinfo::time_param+;
 #pragma link C++ class RunDB::runinfo::runtype+;
 #pragma link C++ class RunDB::runinfo+;
-#pragma link C++ class Ph+;
-#pragma link C++ class PMHit+;
-#pragma link C++ class MCOpticalEvent+;
 #pragma link C++ all function; ///< This should catch all global functions
 
 #endif
