@@ -27,7 +27,7 @@ bool VParameterNode::ReadFromFile(const char *fname, const std::string& key,
       Message(ERROR)<<"Unable to open file "<<fname<<" for reading."<<std::endl;
     return false;
   }
-  bool fail = ReadFromByKey(fin, key,suppress_errs);
+  bool fail = ReadFromByKey(fin, key,suppress_errs).fail();
   fin.close();
   return fail;
 }

@@ -80,7 +80,7 @@ public:
   std::string GetProgramDescription(){ return _program_description; }
   
   ///Process the command line for the registered switches.
-  ///Returns the number of non-switch arguments remaining, neg value if error
+  ///Returns 0 in case of success
   int ProcessCommandLine(int& argc, char** argv);
   
   ///Get the number of non-switch arguments to the command line.

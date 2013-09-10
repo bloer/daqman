@@ -89,14 +89,9 @@ int main(int argc, char** argv)
   //modules->AddCommonModules();
   modules->AddModule<ConvertData>();
   AsciiWriter* writer = modules->AddModule<AsciiWriter>();
-
-  try{
-    config->ProcessCommandLine(argc,argv);
-  }
-  catch(std::exception& e){
-    Message(EXCEPTION)<<"While processing command line: "<<e.what()<<std::endl;
-    config->PrintSwitches(true);
-  }
+  
+  if(config->ProcessCommandLine(argc, argv))
+    return -1;
 
   if(argc < 2){
     Message(ERROR)<<"Incorrect number of arguments: "<<argc<<std::endl;

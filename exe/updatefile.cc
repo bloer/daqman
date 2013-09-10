@@ -85,7 +85,8 @@ int main(int argc, char** argv)
   RawWriter* writer = modules->AddModule<RawWriter>();
   //disable saving the config file by default
   //writer->SetSaveConfig(false);
-  config->ProcessCommandLine(argc,argv);
+  if(config->ProcessCommandLine(argc,argv))
+    return -1;
   
   if(argc < 2){
     Message(ERROR)<<"Incorrect number of arguments: "<<argc<<std::endl;

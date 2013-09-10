@@ -190,9 +190,7 @@ int ConfigHandler::ProcessCommandLine(int& argc, char** argv)
       if(_default_cfg_file != "" && !skipcfgswitchfound){
 	Message(INFO)<<"No --cfg switch found; reading default cfg file "
 		     <<_default_cfg_file<<"...\n";
-	if(!ReadFromFile(_default_cfg_file.c_str())){
-	  return status=1;
-	};
+	status = !ReadFromFile(_default_cfg_file.c_str());
       }
       else{
 	Message(DEBUG)<<"No --cfg switch found and no default file specified; "
@@ -202,9 +200,8 @@ int ConfigHandler::ProcessCommandLine(int& argc, char** argv)
     
     for(int arg = 1; arg<argc; arg++){
       if(status != 0){
-	Message(ERROR)<<"Problem encountered while processing command line "
-		      <<std::endl;
-	return status;
+	break;
+
       }
       if( argv[arg][0] != '-' ){
 	//we're done with switches
@@ -301,12 +298,15 @@ int ConfigHandler::ProcessCommandLine(int& argc, char** argv)
 		      <<e.what()<<std::endl;
     PrintSwitches(true);
   }
-  if(status == 0 ) 
-    argc = _cmd_args.size() + 1;
-  else if(status < 0) return status;
+
+  if(status){
+    Message(ERROR)<<"Problem encountered while processing command line\n";
+    return status;
+  }
   
+  argc = _cmd_args.size() + 1;
   MessageHandler::GetInstance()->UpdateThreshold();
-  return _cmd_args.size();
+  return 0;
 }
 
 bool ConfigHandler::OrderCommandSwitchPointers::operator()

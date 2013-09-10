@@ -60,14 +60,9 @@ int main(int argc, char** argv)
 			   "level");
   
   
-  try{
-    config->SetDefaultCfgFile("cfg/daqview.cfg");
-    config->ProcessCommandLine(argc,argv);
-  }
-  catch(std::exception& e){
-    Message(EXCEPTION)<<"While processing command line: "<<e.what()<<std::endl;
-    config->PrintSwitches(true);
-  }
+  config->SetDefaultCfgFile("cfg/daqview.cfg");
+  if(config->ProcessCommandLine(argc,argv))
+    return -1;
   if(argc != 3 && argc != 2){
     Message(ERROR)<<"Incorrect number of arguments: "<<argc<<std::endl;
     config->PrintSwitches(true);

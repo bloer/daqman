@@ -54,7 +54,7 @@ namespace CommandSwitch{
   public:
     LoadConfigFile(VParameterNode* par) : l(par) {}
     int operator()(const char* file)
-    { return l->ReadFromFile(file); }
+    { return !(l->ReadFromFile(file)); }
   };
   
   /** @class SetValue

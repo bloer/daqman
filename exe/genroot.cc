@@ -180,16 +180,10 @@ int main(int argc, char** argv)
   modules->AddModule<AverageWaveforms>();
   //modules->AddModule<GenericAnalysis>();
   RootWriter* writer = modules->AddModule<RootWriter>();
-
-  try{
-    //config->ReadFromFile("genroot.cfg");
-    config->SetDefaultCfgFile("cfg/genroot.cfg");
-    config->ProcessCommandLine(argc,argv);
-  }
-  catch(std::exception& e){
-    Message(EXCEPTION)<<"While processing command line: "<<e.what()<<std::endl;
-    config->PrintSwitches(true);
-  }
+  
+  config->SetDefaultCfgFile("cfg/genroot.cfg");
+  if(config->ProcessCommandLine(argc,argv))
+    return -1;
 
   if(argc < 2){
     Message(ERROR)<<"Incorrect number of arguments: "<<argc<<std::endl;
