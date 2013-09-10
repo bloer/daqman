@@ -12,7 +12,7 @@
 #define PHRASE_h
 
 /** @class phrase
-    @brief string with overloaded iostream operators to read whitespace
+    @brief string with overloaded iostream operators to read whitespace and empty strings
     @ingroup ConfigHandler
 */
 #include <string>
@@ -27,16 +27,24 @@ public:
   phrase& operator=(const std::string& s)
   { std::string::operator=(s); return *this; }
 };
-/// Read from the stream until we reach the end quotes (")
-inline std::istream& operator>>(std::istream& i, phrase& s){
+
+/// Allow strings to be single words or double-quoted segments
+inline std::istream& operator>>(std::istream& in, phrase& s){
   s.clear();
-  char next;
-  int nquotes = 0;
-  while( (i.get(next) ) && nquotes < 2 ){
-    if( next == '"') nquotes++;
-    else if(nquotes) s.append(1,next);
+  char next=0;
+  in >> next;
+  if(next == '"'){
+  while( in.get(next) && next != '"'){
+      s.append(1,next);
+    }
   }
-  return i;
+  else{
+    in.unget();
+    in >> (std::string&)s;
+  }
+  
+  return in;
+
 }
 
 /// Surround the string body with quotes
