@@ -188,7 +188,7 @@ int main(int argc, char** argv)
   V172X_Daq daq;
     
   config->SetProgramUsageString("daqman [options]");
-  config->SetDefaultCfgFile("cfg/daqman.cfg");
+  config->SetDefaultCfgFile("daqman.cfg");
   
   if(config->ProcessCommandLine(argc, argv))
     return 1;

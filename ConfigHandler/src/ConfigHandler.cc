@@ -11,6 +11,9 @@
 
 #include <sys/ioctl.h>
 #include <stdio.h>
+#include <limits.h>
+#include <unistd.h>
+#include <fstream>
 
 class ParamHelpPrinter{
   const VParameterNode* p;
@@ -64,6 +67,28 @@ ConfigHandler::ConfigHandler() :
   RegisterParameter("notes",_notes, "Generic notes about this run, etc");
   //RegisterParameter("saved-config",_saved_cfg,
   //"Previously saved configuration file");
+  
+  //fill the paths to look for config files
+  _cfg_paths.clear();
+  //first is the current working directory
+  _cfg_paths.push_back(".");
+  //next is the environement variable DAQMAN_CFGDIR if defined
+  if( getenv("DAQMAN_CFGDIR") )
+    _cfg_paths.push_back( getenv("DAQMAN_CFGDIR") );
+  //then relative to the location of the current executable 
+  char result[ PATH_MAX ];
+  ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
+  if(count > 0){
+    std::string dirpart = std::string(result,count);
+    if(dirpart.find_last_of('/') != std::string::npos)
+      dirpart.erase(dirpart.find_last_of('/'));
+    _cfg_paths.push_back( dirpart+"/../cfg");
+  }
+  //finally look in the location where we were compiled
+#ifdef DAQMANBUILDDIR
+  _cfg_paths.push_back(std::string(DAQMANBUILDDIR)+"/cfg");
+#endif
+  
 }
 
 ConfigHandler::~ConfigHandler()
@@ -72,6 +97,25 @@ ConfigHandler::~ConfigHandler()
   for(SwitchSet::iterator it = _switches.begin(); it != _switches.end(); it++){
     delete (*it);
   }
+}
+
+std::string ConfigHandler::FindConfigFile(const std::string& fname)
+{
+  //look for the file in each of the defined locations
+  for(size_t i=0; i<_cfg_paths.size(); ++i){
+    std::string filepath = _cfg_paths[i]+"/"+fname;
+    Message(DEBUG)<<"Searching for file "<<fname<<" under path "
+		 <<filepath<<"...\n";
+    std::ifstream test(filepath.c_str());
+    if(test.is_open()){
+      Message(INFO)<<"Found config file "<<fname<<" at "<<filepath<<"\n";
+      return filepath;
+    }
+  }
+  
+  //if we get here, we couldn'f find it
+  Message(ERROR)<<"Unable to find config file "<<fname<<" under search paths\n";
+  return "";
 }
 
 int ConfigHandler::RemoveCommandSwitch(char shortname, 
@@ -190,7 +234,7 @@ int ConfigHandler::ProcessCommandLine(int& argc, char** argv)
       if(_default_cfg_file != "" && !skipcfgswitchfound){
 	Message(INFO)<<"No --cfg switch found; reading default cfg file "
 		     <<_default_cfg_file<<"...\n";
-	status = !ReadFromFile(_default_cfg_file.c_str());
+	status = CommandSwitch::LoadConfigFile(this)(_default_cfg_file.c_str());
       }
       else{
 	Message(DEBUG)<<"No --cfg switch found and no default file specified; "
@@ -332,3 +376,4 @@ bool ConfigHandler::OrderCommandSwitchPointers::operator()
   //we shouldn't ever get here
   return false;
 }
+

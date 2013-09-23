@@ -51,6 +51,7 @@ INCLUDES    += -I/usr/include/malloc
 #generic c++ and ld flags
 CXXFLAGS    += $(DEBUGFLAGS) -O3 -g -Wall $(INCLUDES)  -Wno-format-y2k -fPIC
 CXXFLAGS    += -DROOTINCLUDEPATH="\"$(ROOTINCLUDEPATH)\""
+CXXFLAGS    += -DDAQMANBUILDDIR="\"$(PWD)\""
 LDFLAGS     += -lz $(DEBUGFLAGS)
 
 #export the whole base as a shared library
