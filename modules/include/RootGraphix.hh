@@ -45,6 +45,8 @@ public:
 		     bool hidemenu=false);
 
 private:
+  void LoadStyle();
+
   TApplication _app;
   TMutex _mutex;
   TThread _thread;

@@ -181,7 +181,7 @@ int main(int argc, char** argv)
   //modules->AddModule<GenericAnalysis>();
   RootWriter* writer = modules->AddModule<RootWriter>();
   
-  config->SetDefaultCfgFile("cfg/genroot.cfg");
+  config->SetDefaultCfgFile("genroot.cfg");
   if(config->ProcessCommandLine(argc,argv))
     return -1;
 

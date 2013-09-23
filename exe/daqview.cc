@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 			   "level");
   
   
-  config->SetDefaultCfgFile("cfg/daqview.cfg");
+  config->SetDefaultCfgFile("daqview.cfg");
   if(config->ProcessCommandLine(argc,argv))
     return -1;
   if(argc != 3 && argc != 2){
