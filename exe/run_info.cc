@@ -136,8 +136,9 @@ int main(int argc, char** argv)
 			   "Don't print run info, just insert into database",
 			   CommandSwitch::SetValue<bool>(db_only,true));
 			   
-			   
-  config->ProcessCommandLine(argc, argv);
+		
+  if(config->ProcessCommandLine(argc, argv))
+    return -1;
   if(config->GetNCommandArgs()==0)
     config->PrintSwitches(true);
   EventHandler* modules = EventHandler::GetInstance();

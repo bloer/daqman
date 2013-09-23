@@ -188,8 +188,11 @@ int main(int argc, char** argv)
   V172X_Daq daq;
     
   config->SetProgramUsageString("daqman [options]");
-  config->SetDefaultCfgFile("cfg/daqman.cfg");
-  config->ProcessCommandLine(argc,argv);
+  config->SetDefaultCfgFile("daqman.cfg");
+  
+  if(config->ProcessCommandLine(argc, argv))
+    return 1;
+  
   if(config->GetNCommandArgs()){
     Message(ERROR)<<"Too many arguments specified."<<std::endl;
     config->PrintSwitches(true);

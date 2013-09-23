@@ -12,7 +12,6 @@
 #include "EvalRois.hh"
 #include "Integrator.hh"
 #include "AverageWaveforms.hh"
-#include "PositionRecon.hh"
 #include "S1S2Evaluation.hh"
 #include "PulseShapeEval.hh"
 #include "SumOfIntegralEval.hh"
@@ -33,7 +32,6 @@ int EventHandler::AddCommonModules()
   AddModule<S1S2Evaluation>();
   AddModule<eTrainFinder>();
   AddModule<SpeFinder>();
-  AddModule<PositionRecon>();
   AddModule<PulseShapeEval>();
   AddModule<SumOfIntegralEval>();
   AddModule<AverageWaveforms>();

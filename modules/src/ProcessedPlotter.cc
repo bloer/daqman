@@ -14,7 +14,6 @@
 #include "EvalRois.hh"
 #include "Integrator.hh"
 #include "S1S2Evaluation.hh"
-#include "PositionRecon.hh"
 #include "PadZoomer.hh"
 
 #include <algorithm>

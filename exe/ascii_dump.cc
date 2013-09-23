@@ -13,17 +13,15 @@
 #include <cstdlib>
 #include <string>
 
-int PrintHelp(const char* dummy = ""){
-  MessageHandler::GetInstance()->End();
-  std::cout<<"Usage: ascii_dump [options] <file1> [<file2, ... ] \n";
-  ConfigHandler::GetInstance()->PrintSwitches();
-  exit(0);
-}
 
 void SetOutputFile(AsciiWriter* writer, const char* inputfile){
   if( writer->GetFilename() == writer->GetDefaultFilename() ){
      //set the filename to be the input filename + .txt
     std::string fname(inputfile);
+    //remove a possible trailing slash in case of a directory argument
+    while(fname.length()>0 && fname[fname.length()-1] =='/' ){
+      fname.resize(fname.length()-1);
+    }
     //remove leading directories
     while(fname.find('/') != std::string::npos){
       fname = fname.substr(fname.find('/')+1);
@@ -32,7 +30,9 @@ void SetOutputFile(AsciiWriter* writer, const char* inputfile){
     fname = fname.substr(0, fname.find('.'));
     //append the root filename
     fname.append(".txt");
-    writer->SetFilename(fname);
+    //make sure we haven't made an empty string here!
+    if(fname!=".txt")
+      writer->SetFilename(fname);
   }
 }
 
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
 {
   int max_event=-1, min_event = 0;
   ConfigHandler* config = ConfigHandler::GetInstance();
-  config->AddCommandSwitch('h',"help","display this help page",PrintHelp);
+  config->SetProgramUsageString("ascii_dum [<options>] <rawdata> [<rawdata2>...]");
   config->AddCommandSwitch(' ',"max","last event to process",
 			   CommandSwitch::DefaultRead<int>(max_event),
 			   "event");
@@ -89,18 +89,13 @@ int main(int argc, char** argv)
   //modules->AddCommonModules();
   modules->AddModule<ConvertData>();
   AsciiWriter* writer = modules->AddModule<AsciiWriter>();
-
-  try{
-    config->ProcessCommandLine(argc,argv);
-  }
-  catch(std::exception& e){
-    Message(EXCEPTION)<<"While processing command line: "<<e.what()<<std::endl;
-    PrintHelp();
-  }
+  
+  if(config->ProcessCommandLine(argc, argv))
+    return -1;
 
   if(argc < 2){
     Message(ERROR)<<"Incorrect number of arguments: "<<argc<<std::endl;
-    PrintHelp();
+    config->PrintSwitches(true);
   }
   
   for(int i = 1; i<argc; i++){

@@ -6,6 +6,7 @@
 #include "Parameter.hh"
 #include <sstream>
 #include "Message.hh"
+#include "ConfigHandler.hh"
 #include <stdexcept>
 #include <iomanip>
 
@@ -62,8 +63,11 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
       if(func == "include"){
 	std::string fname;
 	in>>fname;
-	Message(DEBUG)<<"including file "<<fname<<std::endl;
-	ReadFromFile(fname.c_str());
+	std::string filepath = ConfigHandler::GetInstance()->FindConfigFile(fname);
+	if(filepath == "")
+	  throw std::invalid_argument(fname);
+	Message(DEBUG)<<"including file "<<filepath<<std::endl;
+	ReadFromFile(filepath.c_str());
 	continue;
       }
       else if (func == "copy"){

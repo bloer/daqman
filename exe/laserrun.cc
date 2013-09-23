@@ -529,7 +529,8 @@ int main(int argc, char** argv)
 			   CommandSwitch::SetValue<bool>(mc,true));
 
   config->SetProgramUsageString("laserrun [options] <run number>");
-  config->ProcessCommandLine(argc,argv);
+  if(config->ProcessCommandLine(argc,argv))
+    return -1;
   
   if(argc != 2){
     config->PrintSwitches(true);

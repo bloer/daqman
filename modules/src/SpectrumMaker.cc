@@ -14,6 +14,9 @@
 #include "TTree.h"
 #include "TBranch.h"
 #include "TTreeFormula.h"
+#include "TClass.h"
+#include "TList.h"
+#include "TClassMenuItem.h"
 
 SpectrumMaker::SpectrumMaker(const std::string& name) : 
   BaseModule(name, "Histogram variables from data") ,
@@ -67,6 +70,15 @@ int SpectrumMaker::Initialize()
   _histo->SetXTitle(_xtitle.c_str());
   _histo->SetYTitle(_ytitle.c_str());
   
+  //add Reset to the histogram's popup title
+  if(std::string(_histo->Class()->GetMenuList()->First()->GetTitle()) != 
+     "Reset"){
+    TClass* cl = _histo->Class();
+    cl->GetMenuList()
+      ->AddFirst(new TClassMenuItem(TClassMenuItem::kPopupUserFunction,cl,
+				    "Reset","Reset",0,"",-1,1));
+  }
+			         
   if(graphix && graphix->enabled){
     _canvas = graphix->GetCanvas(GetName().c_str());
     _canvas->SetLogy(_logy);

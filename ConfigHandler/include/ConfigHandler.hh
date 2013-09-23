@@ -80,7 +80,7 @@ public:
   std::string GetProgramDescription(){ return _program_description; }
   
   ///Process the command line for the registered switches.
-  ///Returns the number of non-switch arguments remaining, neg value if error
+  ///Returns 0 in case of success
   int ProcessCommandLine(int& argc, char** argv);
   
   ///Get the number of non-switch arguments to the command line.
@@ -111,6 +111,9 @@ public:
   /// Get the default config file
   const std::string& GetDefaultCfgFile(){ return _default_cfg_file; }
   
+  //search multiple paths for a config file
+  std::string FindConfigFile(const std::string& fname);
+ 
 private:
   std::string _program_usage;      ///< String detailing how to use program
   std::string _program_description; ///< String describing the program
@@ -118,6 +121,9 @@ private:
   phrase _notes;                      ///< specify comments in a config file
   std::string _default_cfg_file;    ///< default config file for this program
   std::string _saved_cfg;             ///< name of old config file
+
+  std::vector<std::string> _cfg_paths; ///<list of paths to search for cfg files
+  
   /// Default constructor is private; singleton implementation
   ConfigHandler(); 
   /// Destructor also private

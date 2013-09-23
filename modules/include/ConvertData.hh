@@ -12,7 +12,6 @@
 #include <map>
 
 class V172X_Params;
-class MC_Params;
 /** @class ConvertData
     @brief Convert the raw data pointer to useable variables
     @ingroup modules
@@ -39,14 +38,11 @@ public:
 private:
   int DecodeV172XData(const unsigned char* rawdata, uint32_t datasize, 
 		       EventDataPtr data);
-  int DecodeMCData(const unsigned char* rawdata, uint32_t datasize, 
-		   EventDataPtr data);
   
   uint64_t start_time;            ///< start time of the run
   uint64_t previous_event_time;   ///< time at which the previous event occurred
   std::map<int,double> _offsets;   ///< software offset time in us
   V172X_Params* _v172X_params;    ///< saved info for a v172x event
-  MC_Params* _mc_params;          ///< saved info for MonteCarlo events
   RunDB::runinfo* _info;         ///< database information for this run
   RunDB::campaigninfo* _cpinfo;  ///< database information for this campaign
   long _id_mismatches;           ///< Number of events with ID mismatch

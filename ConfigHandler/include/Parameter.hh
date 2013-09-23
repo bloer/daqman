@@ -12,12 +12,15 @@
 #define PARAMETER_h
 #include "VParameterNode.hh"
 #include "Message.hh"
+#include "phrase.hh"
+
 #include <stdexcept>
 #include <string>
 #include <cstdlib>
 #include <typeinfo>
 #include <ctime>
 #include <cstdio>
+
 
 /** @class Parameter
     @brief Template implementation of VParamterNode, allows any variable to be 
@@ -174,24 +177,20 @@ template<> inline std::istream& Parameter<unsigned long long>::ReadFrom(std::ist
   _val = ReadUnsignedInt(in); return in;
 }
 
-///Override std::string's to let "" be an empty string
+///Override std::strings to allow enclosing in "", but not require
 template<> inline std::istream& Parameter<std::string>::ReadFrom(std::istream& in, bool)
 {
-  std::string temp;
-  if(in>>temp){
-    if(temp == "\"\"")
-      _val = "";
-    else 
-      _val = temp;
-  }
+  phrase temp;
+  in>>temp;
+  _val = temp;
   return in;
+    
 }
-
-///Override std::string's to let "" be an empty string
+  
+///Override std::string to always be quoted
 template<> inline std::ostream& Parameter<std::string>::WriteTo(std::ostream& out, bool, int)
 {
-  if(_val == "")
-    return out<<"\"\"";
-  return out<<_val;
+  phrase temp(_val);
+  return out<<temp;
 }
 #endif

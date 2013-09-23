@@ -13,7 +13,8 @@
 #include <sstream>
 #include <string>
 #include "VParameterNode.hh"
-
+#include "ConfigHandler.hh"
+ 
 /** @namespace CommandSwitch
     @brief Defines commonly used functors for command switches
     @ingroup ConfigHandler
@@ -54,7 +55,11 @@ namespace CommandSwitch{
   public:
     LoadConfigFile(VParameterNode* par) : l(par) {}
     int operator()(const char* file)
-    { return l->ReadFromFile(file); }
+    { 
+      std::string filepath = ConfigHandler::GetInstance()->FindConfigFile(file);
+      if(filepath=="")
+	return 1;
+      return !(l->ReadFromFile(filepath.c_str())); }
   };
   
   /** @class SetValue
