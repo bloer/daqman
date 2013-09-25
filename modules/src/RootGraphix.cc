@@ -1,4 +1,5 @@
 #include "RootGraphix.hh"
+#include "EventHandler.hh"
 #include "TSystem.h"
 #include "TCanvas.h"
 #include "ConfigHandler.hh"
@@ -78,11 +79,17 @@ int RootGraphix::Finalize()
   return 0;
 }
 
-int RootGraphix::Process(EventPtr )
+int RootGraphix::Process(EventPtr evt)
 {
   for(size_t i=0; i < _canvases.size(); i++){
     Lock glock = AcquireLock();
     _canvases[i]->Update();
+  }
+  if(_mainframe){
+    Lock glock = AcquireLock();
+    int seconds = evt->GetRawEvent()->GetTimestamp() - 
+      EventHandler::GetInstance()->GetRunInfo()->starttime;
+    _mainframe->SetWindowName(Form("daqman: %d events acquired, %d:%02d:%02d run time", evt->GetRawEvent()->GetID(), seconds/3600,(seconds/60)%60, seconds%60));
   }
   return 0;
 }
