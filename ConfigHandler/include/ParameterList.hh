@@ -58,7 +58,7 @@ public:
   virtual std::istream& ReadFrom( std::istream& in, bool single=false);
   /// Write the whole list to an ostream
   virtual std::ostream& WriteTo( std::ostream& out , bool showhelp=false, 
-				 int indent=0);
+				 int indent=0) const;
   /// Print description, travel through sub-tree
   virtual int PrintHelp(const std::string& myname="") const;
   /// Register a new subparameter

@@ -36,7 +36,7 @@ public:
   ~ConfigFunctor(){}
   
   std::istream& ReadFrom(std::istream& in, bool dummy=0){ return reader(in);}
-  std::ostream& WriteTo(std::ostream& out, bool dummy1=0, int dummy=0)
+  std::ostream& WriteTo(std::ostream& out, bool dummy1=0, int dummy=0) const
   { return writer(out);}
 private:
   readfunc reader;
@@ -49,7 +49,7 @@ struct ConfigFunctorDummyRead{
 };
 /// Null-op utility class for ConfigFunctors that don't need write functionality
 struct ConfigFunctorDummyWrite{
-  std::ostream& operator()(std::ostream& out){ return out; }
+  std::ostream& operator()(std::ostream& out) const{ return out; }
 };
 
 

@@ -181,10 +181,10 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
 }
 
 std::ostream& ParameterList::WriteTo( std::ostream& out, bool showhelp,
-				      int indent)
+				      int indent) const
 {
-  if(_parameters.empty())
-    InitializeParameterList();
+  //if(_parameters.empty())
+    // InitializeParameterList();
   std::stringstream dummy;
   dummy<<'\n';
   for(int i=0; i < indent; i++)
@@ -193,7 +193,7 @@ std::ostream& ParameterList::WriteTo( std::ostream& out, bool showhelp,
 
   //print an opening parenthesis to mark the beginning
   out<<"( "<<newline;
-  ParMap::iterator mapit;
+  ParMap::const_iterator mapit;
   mapit = _parameters.begin();
   //Loop over all the parameters in the map and pass the stream to them
   while( !out.fail() && mapit != _parameters.end() ){

@@ -7,32 +7,13 @@
 #include "ConfigHandler.hh"
 #include <vector>
 
-
-std::istream& ConvertData::ChOffsetLoader::operator()(std::istream& in)
-{
-  int ch;
-  double offset;
-  in >> ch >> offset;
-  _parent->SetChOffset(ch,offset);
-  return in;
-}
-
-std::ostream& ConvertData::ChOffsetLoader::operator()(std::ostream& out)
-{
-  std::map<int,double>* offsets = _parent->GetChOffsetMap();
-  std::map<int,double>::iterator it = offsets->begin();
-  for( ; it != offsets->end(); it++){
-    out<<GetFuncName()<<" "<<it->first<<" "<<it->second<<std::endl;
-  }
-  return out;
-}
   
 ConvertData::ConvertData():
   BaseModule(GetDefaultName(), 
 	     "Convert the binary data to useable vectors and timestamps")
 {
-  RegisterFunction(ChOffsetLoader::GetFuncName(), ChOffsetLoader(this),
-		   ChOffsetLoader(this));
+  RegisterParameter("offset_channels", _offsets, 
+		    "map of channelid:offset time to apply for analysis");
   _v172X_params = 0;
   _headers_only = false;
 }
@@ -142,7 +123,7 @@ int ConvertData::Process(EventPtr event)
 	chdata.max_time = chdata.SampleToTime(max_samp - wave);
 	chdata.min_time = chdata.SampleToTime(min_samp - wave);
 	//find the single photoelectron peak for this channel
-	RunDB::runinfo::channelinfo* chinfo = 
+	const RunDB::runinfo::channelinfo* chinfo = 
 	  _info->GetChannelInfo(chdata.channel_id);
 	if(chinfo)
 	  chdata.spe_mean = chinfo->spe_mean;

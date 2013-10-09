@@ -168,17 +168,31 @@ std::ostream& ParameterIOimpl::write(std::ostream& out, const std::map<A,B>& m)
 template<class A, class B> inline
 std::istream& ParameterIOimpl::read(std::istream& in, std::pair<A,B>& p)
 {
-  //require a separating colon (:). specialized for std::strings
+  //allow an opening parenth
+  char start='0';
+  in>>start;
+  const char* startchar = std::find(opener, opener+sizeof(opener), start);
+  size_t offset = startchar-opener;
+  if(offset >= sizeof(opener))
+    in.unget();
+
+  //require a separating colon or comma. specialized for std::strings
   read(in, p.first);
   char sep='0';
   in>>sep;
-  if(sep != ':'){
-    std::cerr<<"Error reading std::pair; expected ':' between values, got '"
+  if(sep != ':' && sep != ','){
+    std::cerr<<"Error reading std::pair; expected : or , between values, got '"
 	     <<sep<<"'\n";
     in.setstate(std::ios::failbit);
     return in;
   }
-  return read(in, p.second);
+  read(in, p.second);
+  if(offset < sizeof(opener)){
+    char end='0';
+    in>>end;
+    //check for end = correct closer? 
+  }
+  return in;
 }
 
 //specialize std::pair read for case where first par is a string

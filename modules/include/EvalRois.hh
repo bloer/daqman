@@ -31,22 +31,17 @@ public:
   
   /// Add a new region of interest to evaluate.  Times in microseconds
   void AddRoi(double t_start, double t_end){
-    _start_time.push_back(t_start);
-    _end_time.push_back(t_end);
+    _regions.push_back(std::make_pair(t_start, t_end));
   }
   
   /// Clear the regions already defined
-  void ClearRegions(){ _start_time.clear(); _end_time.clear(); }
+  void ClearRegions(){ _regions.clear(); }
   
   /// Get the number of regions defined so far
-  int GetNRegions() const { return _start_time.size(); }
-  /// Get the start times of the defined regions
-  const std::vector<double>* GetStartTimes() const { return &_start_time; }
-  /// Get the end times of the defined regions
-  const std::vector<double>* GetEndTimes() const { return &_end_time; }
+  int GetNRegions() const { return _regions.size(); }
+
 private:
-  std::vector<double> _start_time;  ///< vector of defined start times
-  std::vector<double> _end_time;    ///< vector of defined end times
+  std::vector<std::pair<double, double> > _regions;
   
   
 };

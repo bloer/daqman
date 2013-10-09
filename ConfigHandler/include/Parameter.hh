@@ -50,7 +50,7 @@ protected:
   /// Read the underlying variable from an istream
   virtual std::istream& ReadFrom( std::istream& in , bool single=false);
   /// Write the underlying variable to an ostream
-  virtual std::ostream& WriteTo( std::ostream& out , bool, int);
+  virtual std::ostream& WriteTo( std::ostream& out , bool, int) const;
   
   //implementation of read/write is done with impls so we can overload
   std::istream& read_impl(std::istream& in, T& t){ return in>>t; }
@@ -73,7 +73,7 @@ inline std::istream& Parameter<T>::ReadFrom(std::istream& in, bool)
 }
 
 template<class T> 
-inline std::ostream& Parameter<T>::WriteTo(std::ostream& out, bool, int)
+inline std::ostream& Parameter<T>::WriteTo(std::ostream& out, bool, int) const
 {
   return ParameterIOimpl::write(out, _val);
 }

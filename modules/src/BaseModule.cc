@@ -1,25 +1,6 @@
 #include "BaseModule.hh"
 #include "AddCutFunctor.hh"
 
-struct CutClearer{
-  BaseModule* _parent;
-  CutClearer(BaseModule* parent) : _parent(parent) {}
-  std::istream& operator()(std::istream& in){
-    _parent->ClearCuts();
-    return in;
-  }
-};
-
-struct DependencyAdder{
-  BaseModule* _parent;
-  DependencyAdder(BaseModule* parent) : _parent(parent){}
-  std::istream& operator()(std::istream& in){
-    std::string depmodule;
-    in>>depmodule;
-    _parent->AddDependency(depmodule);
-    return in;
-  }
-};
 
 BaseModule::BaseModule(const std::string& name, const std::string& helptext) : 
   ParameterList(name, helptext), _last_process_return(0)
@@ -28,14 +9,9 @@ BaseModule::BaseModule(const std::string& name, const std::string& helptext) :
 		    "Is this module enabled for this run?");
   RegisterParameter("skip_channels",_skip_channels,
 		    "List the channels which we don't process");
-  RegisterFunction(AddCutFunctor::GetFunctionName(), 
-		   AddCutFunctor(this), AddCutFunctor(this),
-		   "Add a cut which events must pass before processing");
-  RegisterReadFunction("clear_cuts", CutClearer(this),
-		       "Clear the list of defined cuts");
-  RegisterReadFunction("add_dependency",DependencyAdder(this),
-		       "List another module as a dependency");
-  
+  //RegisterParameter("cuts", _cuts, "List cuts to pass before processing");
+  RegisterParameter("dependencies", _dependencies, 
+		    "List of modules that need to process before us");
 }
 
 BaseModule::~BaseModule()
@@ -90,23 +66,3 @@ void BaseModule::ClearCuts()
   _cuts.clear();
 }
 
-std::ostream& operator<<(std::ostream& out, BaseModule::ChannelSkipper& ch)
-{
-  out<<" ( ";
-  for( std::set<int>::iterator it = ch.begin(); it != ch.end(); it++)
-    out<<*it<<" ";
-  out<<" ) ";
-  return out;
-}
-
-std::istream& operator>>(std::istream& in, BaseModule::ChannelSkipper& ch)
-{
-  ch.clear();
-  std::string temp="";
-  while( in>>temp && temp != ")" && temp != "}" && temp != "]"){
-    if(temp == "," || temp == "(" || temp == "[" || temp == "{" ) continue;
-    int channel = atoi(temp.c_str());
-    ch.insert(channel);
-  }
-  return in;
-}

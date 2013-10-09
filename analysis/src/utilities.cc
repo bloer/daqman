@@ -182,19 +182,21 @@ void SetAliases(TTree* Events)
   Events->GetEntry(0);
   RunDB::runinfo run_info;  //<does nothing!!! 
   //loop over all the defined channels and alias their spectra
-  for(size_t i=0; i < run_info.channels.size(); i++){
-    RunDB::runinfo::channelinfo& chinfo = run_info.channels[i];
-    if(chinfo.channel < 0) continue;
+  std::set<RunDB::runinfo::channelinfo>::iterator it=run_info.channels.begin();
+  int i=0;
+  for( ;  it != run_info.channels.end(); ++i){
+    if(it->channel < 0) continue;
     //user 2 filters for top pmts, 3 filters for bottom
     int filters = 2;
-    if(chinfo.channel == 7) filters=3;
-    double spe = GetSPEScaleFactor(run_info.runid, chinfo.channel,filters);
+    if(it->channel == 7) filters=3;
+    double spe = GetSPEScaleFactor(run_info.runid, it->channel,filters);
     TString aliasname="npe";
-    aliasname += chinfo.channel;
+    aliasname += it->channel;
     std::stringstream aliasdef;
-    aliasdef<<"(-channels["<<chinfo.channel<<"].regions[1].integral/"
+    aliasdef<<"(-channels["<<it->channel<<"].regions[1].integral/"
 	    <<spe<<")";
     Events->SetAlias(aliasname, aliasdef.str().c_str());
+    ++i;
   }
   //add some global definitions
   Events->SetAlias("topspec","npe0+npe1+npe2+npe3+npe4+npe5+npe6");

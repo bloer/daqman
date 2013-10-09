@@ -118,12 +118,6 @@ protected:
   
 };
 
-/// overload ostream operator to let ChannelSkipper write to config files
-std::ostream& operator<<(std::ostream& out, BaseModule::ChannelSkipper& ch);
-
-/// overload istream operator to let ChannelSkipper read from config files
-std::istream& operator>>(std::istream& in, BaseModule::ChannelSkipper& ch);
-
 
 #endif
   
