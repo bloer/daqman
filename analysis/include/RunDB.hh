@@ -327,7 +327,7 @@ namespace RunDB{
 };
   
       std::istream& operator>>(std::istream& in, RunDB::runinfo::runtype& type);
-      std::ostream& operator<<(std::ostream& out, RunDB::runinfo::time_param& t);
+      std::ostream& operator<<(std::ostream& out, const RunDB::runinfo::time_param& t);
       std::istream& operator>>(std::istream& in, RunDB::runinfo::time_param& t);
       
       

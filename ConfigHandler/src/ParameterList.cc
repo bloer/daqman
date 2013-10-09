@@ -94,6 +94,7 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
     //anything else should be the start of a key 
     //so put it back and read in the key
     in.unget();
+
     std::string bigkey;
     if( !(in>>bigkey) ){
       //somethings messed up.  Throw an exception and die
@@ -116,7 +117,9 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
     //read all the keys listed
     std::streampos start = in.tellg();
     for(size_t ikey = 0; ikey<keylist.size(); ++ikey){
-      in.seekg(start);
+      if(ikey>0)
+	in.seekg(start);
+
       std::string key = keylist[ikey];
       //see if the key has '.' in it
       bool sendsingle = false;

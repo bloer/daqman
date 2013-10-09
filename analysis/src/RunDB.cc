@@ -285,7 +285,7 @@ std::istream& operator>>(std::istream& in, RunDB::runinfo::time_param& t)
   return in;
 }
 /// Make time_t print as a string
-std::ostream& operator<<(std::ostream& out,RunDB::runinfo::time_param& t)
+std::ostream& operator<<(std::ostream& out,const RunDB::runinfo::time_param& t)
 {
   char str[20];
   std::strftime(str,20,"%Y-%m-%d %H:%M:%S",std::gmtime(&t.t));

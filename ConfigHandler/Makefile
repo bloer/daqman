@@ -42,12 +42,12 @@ libMessageHandler.so: src/MessageHandler.o
 	@$(CXX) $(LDFLAGS) $(LIBFLAGS) $^ -o $@
 	@mv $@ lib/$@
 
-libParameterList.so: src/MessageHandler.o src/VParameterNode.o src/ParameterList.o
+libParameterList.so: src/MessageHandler.o src/VParameterNode.o src/ParameterList.o src/ParameterIOimpl.o
 	@echo " Generating shared library $@"
 	@$(CXX) $(LDFLAGS) $(LIBFLAGS) $^ -o $@
 	@mv $@ lib/$@
 
-libConfigHandler.so: src/MessageHandler.o src/VParameterNode.o src/ParameterList.o src/ConfigHandler.o
+libConfigHandler.so: src/MessageHandler.o src/VParameterNode.o src/ParameterList.o src/ParameterIOimpl.o src/ConfigHandler.o
 	@echo " Generating shared library $@"
 	@$(CXX) $(LDFLAGS) $(LIBFLAGS) $^ -o $@
 	@mv $@ lib/$@
