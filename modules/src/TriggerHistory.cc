@@ -142,7 +142,7 @@ int TriggerHistory::Process(EventPtr evt)
     if(gROOT->GetVersionInt()<53200)
       _canvas->Update();
     _multigraph->GetXaxis()->SetTimeDisplay(1);
-    _multigraph->GetXaxis()->SetTimeFormat("%H:%M");
+    _multigraph->GetXaxis()->SetTimeFormat("%H:%M:%S");
     _multigraph->GetYaxis()->SetTitle("Rate [Hz]");
     _canvas->Modified();
     
