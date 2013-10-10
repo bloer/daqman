@@ -124,6 +124,8 @@ void RunDB::runinfo::InitializeParameterList()
   RegisterParameter("post_trigger_time_us",post_trigger_time_us,
 		    "Length of post-trigger digitization window in us");
   RegisterParameter("channels", channels, "Set of info for all channels");
+  RegisterReadFunction("clear_channels" , ConfigFunctorDummyRead(), 
+		       "obsolete reference for back-compatibility");
   
 }
 

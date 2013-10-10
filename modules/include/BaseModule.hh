@@ -109,12 +109,12 @@ public:
   /** @typedef ChannelSkipper
       @brief Allows one to skip processing some channels
   */
-  typedef std::set<int> ChannelSkipper;
+  
 protected:  
   int _last_process_return; ///< Value returned from last Process call
   std::set<std::string> _dependencies; ///< list of modules we need to run first
   std::vector<ProcessingCut*> _cuts; ///< list of cuts to take before processing
-  ChannelSkipper _skip_channels; ///< list of channels not to process
+  std::set<int> _skip_channels; ///< list of channels not to process
   
 };
 

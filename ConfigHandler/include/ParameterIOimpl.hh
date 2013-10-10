@@ -138,7 +138,7 @@ inline std::ostream& ParameterIOimpl::write(std::ostream& out,
 template<class T> inline 
 std::istream& ParameterIOimpl::read(std::istream& in, std::set<T>& s)
 {
-  return in;// readlist(in, s);
+  return readlist<T>(in, s);
 }
 
 template<class T> inline
@@ -276,6 +276,11 @@ std::istream& ParameterIOimpl::readlist(std::istream& in,C& container)
   while( in >> next && next != closer[offset] ){
     if(next == ',')
       continue;
+    else if(next == '#'){ //comment, so kill the rest of the line
+      std::string dummy;
+      std::getline(in, dummy);
+      continue;
+    }
     in.unget();
     T t;
     if(!read(in,t))
