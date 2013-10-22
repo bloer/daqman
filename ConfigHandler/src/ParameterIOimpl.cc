@@ -27,7 +27,8 @@ std::istream& ParameterIOimpl::read(std::istream& in, std::string& s)
 }
   
 ///Override std::string to always be quoted on output
-std::ostream& ParameterIOimpl::write(std::ostream& out, const std::string& s)
+std::ostream& ParameterIOimpl::write(std::ostream& out, const std::string& s, 
+				     bool, int)
 {
   phrase temp(s);
   return out<<temp;

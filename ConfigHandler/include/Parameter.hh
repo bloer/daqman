@@ -30,6 +30,9 @@
     
     @ingroup ConfigHandler
 */
+
+class ParameterList;
+
 template<class T> class Parameter : public VParameterNode{
 public:
   /// DefaultConstructor
@@ -43,18 +46,29 @@ public:
   /// Assignment operator
   Parameter& operator=(const Parameter& right){ _val=right._val; return *this;}
   /// Return the underlying variable by reference
-  const T& GetValue(){ return _val; }
+  const T& GetValue() const { return _val; }
+  ///Return the underlying variable by pointer
+  const T* GetPointer() const { return &_val; }
   /// Print information about this parameter
   virtual int PrintHelp(const std::string& myname="") const;
+    
+  ///Clone to new ParameterList
+  virtual Parameter<T>* Clone(const void* from, void* to) const;
+  
+  ///access to the type of parameter for copy usage
+  typedef T param_type;
 protected:
   /// Read the underlying variable from an istream
   virtual std::istream& ReadFrom( std::istream& in , bool single=false);
   /// Write the underlying variable to an ostream
-  virtual std::ostream& WriteTo( std::ostream& out , bool, int) const;
+  virtual std::ostream& WriteTo( std::ostream& out , bool showhelp=false, 
+				 int indent=0) const;
   
   //implementation of read/write is done with impls so we can overload
-  std::istream& read_impl(std::istream& in, T& t){ return in>>t; }
-  std::ostream& write_impl(std::ostream& out, T& t){ return out<<t; }
+  /*std::istream& read_impl(std::istream& in, T& t){ return in>>t; }
+  std::ostream& write_impl(std::ostream& out, T& t, 
+			   bool showhelp=false, int indent=0){ return out<<t; }
+  */
   //specific impl overload
   
 private:
@@ -73,9 +87,9 @@ inline std::istream& Parameter<T>::ReadFrom(std::istream& in, bool)
 }
 
 template<class T> 
-inline std::ostream& Parameter<T>::WriteTo(std::ostream& out, bool, int) const
+inline std::ostream& Parameter<T>::WriteTo(std::ostream& out, bool showhelp, int indent) const
 {
-  return ParameterIOimpl::write(out, _val);
+  return ParameterIOimpl::write(out, _val, showhelp, indent);
 }
 
 template<class T>
@@ -84,7 +98,7 @@ inline int Parameter<T>::PrintHelp(const std::string& myname) const
   VParameterNode::PrintHelp(myname);
   std::cout<<"Parameter type: "<<typeid(_val).name()<<"\n"
 	   <<"Current Value:  ";
-  ParameterIOimpl::write(std::cout, _val);
+  ParameterIOimpl::write(std::cout, _val, true);
   std::cout<<std::endl;
   std::string dummy;
   std::cout<<"\nHit <enter> to continue.";
@@ -92,6 +106,13 @@ inline int Parameter<T>::PrintHelp(const std::string& myname) const
   std::getline(std::cin, dummy);
   
   return 0;
+}
+
+template<class T> inline 
+Parameter<T>* Parameter<T>::Clone(const void* from, void* to) const
+{
+  unsigned diff = (const char*)(GetPointer()) - (const char*)from;
+  return new Parameter<T>((T&)(*( (char*)to+diff )), _default_key, _helptext); 
 }
 
 

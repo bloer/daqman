@@ -18,6 +18,7 @@
     
     @ingroup ConfigHandler    
 */
+
 class VParameterNode{
 public:
   /// Default Constructor
@@ -53,6 +54,9 @@ public:
   const std::string& GetHelpText(){ return _helptext; }
   /// Set the associated help text
   void SetHelpText(const std::string& newtext){ _helptext = newtext; }
+  
+  ///Clone the object onto a new parameter list
+  virtual VParameterNode* Clone(const void* from, void* to) const =0;
 
 protected:
   /** @enum NODE_TYPES

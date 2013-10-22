@@ -38,6 +38,9 @@ public:
   std::istream& ReadFrom(std::istream& in, bool dummy=0){ return reader(in);}
   std::ostream& WriteTo(std::ostream& out, bool dummy1=0, int dummy=0) const
   { return writer(out);}
+  
+  ConfigFunctor<readfunc, writefunc>* Clone(const void* from, void* to) const
+  { return new ConfigFunctor<readfunc, writefunc>(*this); }
 private:
   readfunc reader;
   writefunc writer;

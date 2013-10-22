@@ -34,7 +34,7 @@ enum MESSAGE_LEVEL {DEBUG3=0, DEBUG2, DEBUG, INFO, WARNING, ERROR,
 		    CRITICAL, EXCEPTION, N_MESSAGE_LEVELS};
 //MESSAGE_LEVEL needs streaming and increment/decrement operators
 /// ostream overload for MESSAGE_LEVEL
-std::ostream& operator<<(std::ostream& out, MESSAGE_LEVEL& level);
+std::ostream& operator<<(std::ostream& out, const MESSAGE_LEVEL& level);
 /// istream overload for MESSAGE_LEVEL
 std::istream& operator>>(std::istream& in, MESSAGE_LEVEL& level);
 /// increment operator for MESSAGE_LEVEL

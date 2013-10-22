@@ -26,12 +26,13 @@ void AsyncEventHandler::Reset()
 }
 
 int AsyncEventHandler::AddModule(BaseModule* mod,
-				 bool register_to_eventhandler)
+				 bool register_to_eventhandler,
+				 bool register_parameters)
 {
   if(mod){
     _modules.push_back(mod);
     if(register_to_eventhandler) {
-      EventHandler::GetInstance()->AddModule(mod, false);
+      EventHandler::GetInstance()->AddModule(mod, false, register_parameters);
     }
   }
   return 0;

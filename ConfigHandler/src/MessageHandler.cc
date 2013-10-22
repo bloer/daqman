@@ -61,7 +61,7 @@ namespace MessageLevelConversion{
   
 
 //operator overloads for MESSAGE_LEVEL
-std::ostream& operator<<(std::ostream& out, MESSAGE_LEVEL& level)
+std::ostream& operator<<(std::ostream& out, const MESSAGE_LEVEL& level)
 {
   return out<<MessageLevelConversion::EnumToString(level);
 }

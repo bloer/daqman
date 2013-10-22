@@ -48,7 +48,7 @@ inline std::istream& operator>>(std::istream& in, phrase& s){
 }
 
 /// Surround the string body with quotes
-inline std::ostream& operator<<(std::ostream& o, phrase& s){
+inline std::ostream& operator<<(std::ostream& o, const phrase& s){
   return o<<'"'<<(std::string&)(s)<<'"';
 }
   

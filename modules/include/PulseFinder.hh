@@ -91,6 +91,6 @@ private:
 
 //override stream ops for SearchMode
 std::istream& operator>>(std::istream& in, PulseFinder::SEARCH_MODE& m);
-std::ostream& operator<<(std::ostream& out, PulseFinder::SEARCH_MODE& m);
+std::ostream& operator<<(std::ostream& out, const PulseFinder::SEARCH_MODE& m);
 
 #endif

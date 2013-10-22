@@ -211,7 +211,7 @@ namespace RunDB{
     long events;          ///< number of events in the tree 
     double livetime;      ///< runtime scaled by the number of accepted triggers
     runtype type;         ///< what class of run it is (laser, background, etc)
-    phrase comment;       ///< generic info about the run
+    std::string comment;       ///< generic info about the run
     double drift_hv;      ///< setting of the drift_hv field
     double extraction_hv; ///< setting of the extraction_hv field
     double trigger_veto;  ///< length of per-trigger veto in msec, -1 disables

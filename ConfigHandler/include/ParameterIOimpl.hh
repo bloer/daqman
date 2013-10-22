@@ -12,20 +12,51 @@
 #include <set>
 #include <map>
 #include <algorithm>
+#include "boost/type_traits.hpp"
 
+#include "VParameterNode.hh"
 /** @namespace ParameterIOimpl
     @brief defines helper functions and non-templated functions for Parameter IO
  */
 namespace ParameterIOimpl{
   unsigned long ReadUnsignedInt(std::istream& in);
   
+  inline std::ostream& write(std::ostream& out, const VParameterNode& p,
+			     bool showhelp=false, int indent=0)
+  {
+    std::cerr<<"Writing VParameterNode\n";
+    return p.WriteTo(out, showhelp, indent+1);
+  }
+  
   //basic template
-  template<class T> std::istream& read(std::istream& in, T& t);
-  template<class T> std::ostream& write(std::ostream& out, const T& t);
+  template<class T> inline std::istream& read(std::istream& in, T& t)
+  { return in >> t; }
+  
+  template<class T> inline std::ostream& write(std::ostream& out, const T& t,
+					       bool showhelp=false, 
+					       int indent=0)
+  { return writeleaf(out, t, showhelp, indent, 
+		     boost::is_base_of<VParameterNode,T>()); }
+  
+  
+  //lowest level needs meta template to give indent to parameters
+  //T inherits from VParameterNode:
+  template <class T> inline std::ostream& writeleaf(std::ostream& out, 
+						    const T& t,
+						    bool showhelp, int indent, 
+						    const boost::true_type&)
+  { return t.WriteTo(out, showhelp, indent); }
+  //T is not a VParameterNode: 
+  template <class T> inline std::ostream& writeleaf(std::ostream& out, 
+						    const T& t,
+						    bool showhelp, int indent, 
+						    const boost::false_type&)
+  { return out<<t; }
+  
   
   //overload for bools and unsigned ints
   std::istream& read(std::istream& in, bool& b);
-  inline std::ostream& write(std::ostream& out, const bool& b)
+  inline std::ostream& write(std::ostream& out, const bool& b, bool, int)
   { return out<<std::boolalpha<< b <<std::noboolalpha; }
   
   inline std::istream& read(std::istream& in, unsigned& u)
@@ -42,15 +73,15 @@ namespace ParameterIOimpl{
   
 
   
-  inline std::ostream& write(std::ostream& out, const unsigned& u)
+  inline std::ostream& write(std::ostream& out, const unsigned& u, bool, int)
   { return out<<std::hex<<std::showbase<< u <<std::noshowbase<<std::dec; }
-  inline std::ostream& write(std::ostream& out, const unsigned char& u)
+  inline std::ostream& write(std::ostream& out, const unsigned char& u, bool, int)
   { return out<<std::hex<<std::showbase<< u <<std::noshowbase<<std::dec; }
-  inline std::ostream& write(std::ostream& out, const unsigned short& u)
+  inline std::ostream& write(std::ostream& out, const unsigned short& u, bool, int)
   { return out<<std::hex<<std::showbase<< u <<std::noshowbase<<std::dec; }
-  inline std::ostream& write(std::ostream& out, const unsigned long& u)
+  inline std::ostream& write(std::ostream& out, const unsigned long& u, bool, int)
   { return out<<std::hex<<std::showbase<< u <<std::noshowbase<<std::dec; }
-  inline std::ostream& write(std::ostream& out, const unsigned long long& u)
+  inline std::ostream& write(std::ostream& out, const unsigned long long& u, bool, int)
   { return out<<std::hex<<std::showbase<< u <<std::noshowbase<<std::dec; }
   
   
@@ -59,36 +90,43 @@ namespace ParameterIOimpl{
   //overload for vector
   template<class T> std::istream& read(std::istream& in, std::vector<T>& v);
   template<class T> std::ostream& write(std::ostream& out, 
-					const std::vector<T>& v);
+					const std::vector<T>& v,
+					bool showhelp=false, int indent=0);
   //overload set
   template<class T> 
   std::istream& read(std::istream& in, std::set<T>& s);
   template<class T>
-  std::ostream& write(std::ostream& out, const std::set<T>& s);
+  std::ostream& write(std::ostream& out, const std::set<T>& s,
+		      bool showhelp=false, int indent=0);
 
   //overload map
   template<class A, class B>
   std::istream& read(std::istream& in, std::map<A,B>& m);
   template<class A, class B>
-  std::ostream& write(std::ostream& out, const std::map<A,B>& m);
+  std::ostream& write(std::ostream& out, const std::map<A,B>& m,
+		      bool showhelp=false, int indent=0);
 
   
   //overload for std::string
   std::istream& read(std::istream& in, std::string& s);
-  std::ostream& write(std::ostream& out, const std::string& s);
+  std::ostream& write(std::ostream& out, const std::string& s, bool, int);
   //overload for std::pair
   template<class A, class B> std::istream& read(std::istream& in, 
 						std::pair<A,B>& p);
   template<class B> std::istream& read(std::istream& in, 
 				       std::pair<std::string,B>& p);
   template<class A, class B> std::ostream& write(std::ostream& out,
-						 const std::pair<A,B>& p);
+						 const std::pair<A,B>& p,
+						 bool showhelp=false,
+						 int indent=0);
 						 
   //combine IO for all containers using generic definitions
   template<class ConstIterator> std::ostream& writeit(std::ostream& out,
 						      ConstIterator a,
 						      ConstIterator b,
-						      unsigned container=0);
+						      unsigned container=0,
+						      bool showhelp=false,
+						      int indent=0);
   template<class T, class C> std::istream& readlist(std::istream& in,
 						    C& container);
   
@@ -107,18 +145,6 @@ namespace ParameterIOimpl{
   
 };
 
-//basic function
-template<class T> 
-inline std::istream& ParameterIOimpl::read(std::istream& in, T& t)
-{
-  return in>>t;
-}
-
-template<class T> 
-inline std::ostream& ParameterIOimpl::write(std::ostream& out, const T& t)
-{
-  return out<<t;
-}
 
 //overload for std::vector
 template<class T> 
@@ -129,9 +155,10 @@ inline std::istream& ParameterIOimpl::read(std::istream& in, std::vector<T>& v)
 
 template<class T> 
 inline std::ostream& ParameterIOimpl::write(std::ostream& out, 
-					    const std::vector<T>& v)
+					    const std::vector<T>& v,
+					    bool showhelp, int indent)
 {
-  return writeit(out, v.begin(), v.end());
+  return writeit(out, v.begin(), v.end(), 0, showhelp, indent);
 }
 
 //overload for std::set
@@ -143,9 +170,10 @@ std::istream& ParameterIOimpl::read(std::istream& in, std::set<T>& s)
 
 template<class T> inline
 std::ostream& ParameterIOimpl::write(std::ostream& out, 
-				     const std::set<T>& s)
+				     const std::set<T>& s, 
+				     bool showhelp, int indent)
 {
-  return writeit(out, s.begin(), s.end());
+  return writeit(out, s.begin(), s.end(), 0, showhelp, indent);
 }
 
 //overload for std::map
@@ -156,9 +184,10 @@ std::istream& ParameterIOimpl::read(std::istream& in, std::map<A,B>& m)
 }
 
 template<class A, class B> inline
-std::ostream& ParameterIOimpl::write(std::ostream& out, const std::map<A,B>& m)
+std::ostream& ParameterIOimpl::write(std::ostream& out, const std::map<A,B>& m,
+				     bool showhelp, int indent)
 {
-  return writeit(out, m.begin(), m.end() , 1);
+  return writeit(out, m.begin(), m.end() , 1, showhelp, indent);
 }
 
 
@@ -219,10 +248,11 @@ std::istream& ParameterIOimpl::read(std::istream& in,
 }
 
 template<class A, class B> inline
-std::ostream& ParameterIOimpl::write(std::ostream& out,const std::pair<A,B>& p)
+std::ostream& ParameterIOimpl::write(std::ostream& out,const std::pair<A,B>& p,
+				     bool showhelp, int indent)
 {
-  write(out, p.first)<<" : ";
-  return write(out,p.second);
+  write(out, p.first, showhelp, indent)<<" : ";
+  return write(out,p.second, showhelp, indent);
 }
 
 
@@ -232,14 +262,16 @@ template<class ConstIterator>
 inline std::ostream& ParameterIOimpl::writeit(std::ostream& out,
 					      ConstIterator a,
 					      ConstIterator b,
-					      unsigned container=0)
+					      unsigned container,
+					      bool showhelp,
+					      int indent)
 {
   if(container >= sizeof(opener))
     container = 0;
   
   out<<opener[container]<<' ';
   while(a != b){
-    write(out, *a);
+    write(out, *a, showhelp, indent);
     out<<" ";
     if(++a != b)
       out<<", ";

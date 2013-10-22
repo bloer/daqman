@@ -45,14 +45,19 @@ public:
     VParameterNode(key, helptext) { _node_type = PARAMETER_LIST; }
   /// Desctructor
   virtual ~ParameterList();
+  ///Clone to new ParameterList
+  virtual ParameterList* Clone(const void* from, void* to) const
+  {return (ParameterList*)((char*)to + ((const char*)this-(const char*)from));}
 protected:
   /// Copy constructor can only be used by derived classes
   ParameterList(const ParameterList& right);
   /// Operator= can only be used by derived classes
   ParameterList& operator=(const ParameterList& right);
+  /// Util to copy the guts of a parameter list by relative reference
+  void CopyPlistRelative(const ParameterList& right);
 public:
   /// Initialize the parameter list, needed to preserve copy functionality
-  virtual void InitializeParameterList(){}
+  virtual void InitializeParameterList() { std::cerr<<"InitializeParameterList\n";}
 
   /// Read the whole list from an istream
   virtual std::istream& ReadFrom( std::istream& in, bool single=false);
@@ -171,6 +176,5 @@ inline int ParameterList::RegisterWriteFunction(const std::string& key,
 {
   return RegisterFunction(key, ConfigFunctorDummyRead(), writer, helptext);
 }
-
 
 #endif

@@ -19,6 +19,7 @@ ParameterList::ParameterList(const ParameterList& right) :
   VParameterNode(right._default_key, right._helptext)
 {
   _node_type = PARAMETER_LIST;
+  CopyPlistRelative(right);
 }
 
 ParameterList& ParameterList::operator=(const ParameterList& right)
@@ -27,6 +28,30 @@ ParameterList& ParameterList::operator=(const ParameterList& right)
   _parameters.clear();
   return *this;
 }
+
+void ParameterList::CopyPlistRelative(const ParameterList& right)
+{
+  ParMap::const_iterator it;
+  for(it = right._parameters.begin(); it != right._parameters.end(); ++it){
+    VParameterNode* newnode = it->second->Clone(&right, this);
+    switch(newnode->GetNodeType()){
+    case FUNCTION:
+    case PARAMETER:{
+      boost::shared_ptr<VParameterNode> ptr(newnode);
+      _deleter.push_back(ptr);
+      _parameters.insert(std::make_pair(it->first,newnode));
+      break;
+    }
+    case PARAMETER_LIST:
+      _parameters.insert(std::make_pair(it->first, newnode));
+      break;
+    default:
+      break;
+    }
+  
+  }//end loop over map iterator
+}
+
 
 VParameterNode* const ParameterList::GetParameter(const std::string& key){
   ParMap::iterator it = _parameters.find(key);
@@ -184,7 +209,7 @@ std::ostream& ParameterList::WriteTo( std::ostream& out, bool showhelp,
 				      int indent) const
 {
   //if(_parameters.empty())
-    // InitializeParameterList();
+  //InitializeParameterList();
   std::stringstream dummy;
   dummy<<'\n';
   for(int i=0; i < indent; i++)

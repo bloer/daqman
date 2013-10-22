@@ -32,7 +32,8 @@ public:
   void Reset();
   
   /// Add a module to be handled by this process
-  int AddModule(BaseModule* mod, bool register_to_eventhandler = true);
+  int AddModule(BaseModule* mod, bool register_to_eventhandler = true,
+		bool register_parameters = true);
   
   /// Register another handler to receive processed events from this batch
   int AddReceiver(AsyncEventHandler* receiver);
