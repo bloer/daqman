@@ -63,18 +63,16 @@ std::ostream& operator<<(std::ostream& out, const PrintStats& stats){
 
 //utility class to add real-time spectra
 class SpectrumAdder{
-  AsyncEventHandler* _handler;
+  std::vector<SpectrumMaker>& _spectra;
 public:
-  SpectrumAdder(AsyncEventHandler* handler) : _handler(handler) {}
+  SpectrumAdder(std::vector<SpectrumMaker>& v) : _spectra(v) {}
   std::istream& operator()(std::istream& in){
     //first parameter is the name of the spectrum module
     std::string name;
     in>>name;
-    SpectrumMaker* spec = new SpectrumMaker(name);
+    _spectra.push_back(SpectrumMaker(name));
     //expect to read parameters immediately after name
-    in>>*spec;
-    //register the spectrum with the event handler
-    _handler->AddModule(spec);
+    in>>_spectra.back();
     return in;
   }
 };
@@ -118,25 +116,17 @@ int main(int argc, char** argv)
   thread2.AddModule(rootgraphix, false);
   async_threads.push_back(&thread2);
   
-  //for right now, put the spectra all on one thread
-  AsyncEventHandler thread3;
-  thread1.AddReceiver(&thread3);
-  //have 3 spectra available but disabled by default
-  SpectrumMaker* spec = new SpectrumMaker("Spectrum1");
-  spec->enabled = false;
-  thread3.AddModule(spec);
-  spec = new SpectrumMaker("Spectrum2");
-  spec->enabled = false;
-  thread3.AddModule(spec);
-  spec = new SpectrumMaker("Spectrum3");
-  spec->enabled = false;
-  thread3.AddModule(spec);
+  //allow as many spectra as we want
+  std::vector<SpectrumMaker> spectra;
+  modules->RegisterParameter("spectra",spectra, 
+			     "List of live analysis spectra to dispay");
   
   
-  //this can break stuff, but it can be useful, so keep it for now
-  modules->RegisterReadFunction("add_spectrum", SpectrumAdder(&thread3),
+  
+  //keep this for backward compatibility
+  modules->RegisterReadFunction("add_spectrum", SpectrumAdder(spectra),
 				"Add a new real-time spectrum to display");
-  async_threads.push_back(&thread3);
+
     
   //initialize some options for command switches
   long stop_events = -1, stop_time = -1; 
@@ -145,6 +135,7 @@ int main(int argc, char** argv)
   bool write_only = false;
   RunDB::runinfo* info = modules->GetRunInfo();
   std::string testmode_file="";
+  int testmode_dt = 0;
   int graphics_refresh = 1;
   bool require_comment = false;
   config->AddCommandSwitch('i', "info", "Set run database info to <info>",
@@ -169,6 +160,8 @@ int main(int argc, char** argv)
   config->AddCommandSwitch(' ',"testmode","Fake DAQ from input file <file>",
 			   CommandSwitch::DefaultRead<std::string>
 			   (testmode_file) ,"file");
+  config->AddCommandSwitch(' ',"testmode-dt","Sleep <N> ms between each event",
+			   CommandSwitch::DefaultRead<int>(testmode_dt),"N");
   config->AddCommandSwitch(' ',"stat-time","Print stats every <secs> seconds",
 			   CommandSwitch::DefaultRead<int>(stattime),"secs");
   config->AddCommandSwitch(' ',"refresh","Time in s between graphics update",
@@ -198,6 +191,14 @@ int main(int argc, char** argv)
     config->PrintSwitches(true);
   }
   
+  if(spectra.size() > 0){
+    //for right now, put the spectra all on one thread
+    AsyncEventHandler thread3;
+    thread1.AddReceiver(&thread3);
+    for(size_t i=0; i<spectra.size(); ++i)
+      thread3.AddModule(&(spectra[i]), true, false);
+    async_threads.push_back(&thread3);
+  }
   
   if(writer->enabled){
     modules->SetRunIDFromFilename(writer->GetFilename());
@@ -292,8 +293,11 @@ int main(int argc, char** argv)
 	if(stop_run) break;
 	//get the next event
 	RawEventPtr evt;
-	if(reader)
+	if(reader){
 	  evt = reader->GetNextEvent();
+	  if(testmode_dt>0)
+	    boost::this_thread::sleep(boost::posix_time::millisec(testmode_dt));
+	}
 	else
 	  evt = daq.GetNextEvent(500000);
 	if(!evt){

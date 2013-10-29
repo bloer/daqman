@@ -11,6 +11,7 @@
 #ifndef PARAMETER_h
 #define PARAMETER_h
 #include "VParameterNode.hh"
+#include "ParameterIOimpl.hh"
 #include "Message.hh"
 #include "phrase.hh"
 
@@ -22,12 +23,16 @@
 #include <cstdio>
 
 
+
 /** @class Parameter
     @brief Template implementation of VParamterNode, allows any variable to be 
     set/read via stl iostreams
     
     @ingroup ConfigHandler
 */
+
+class ParameterList;
+
 template<class T> class Parameter : public VParameterNode{
 public:
   /// DefaultConstructor
@@ -41,32 +46,39 @@ public:
   /// Assignment operator
   Parameter& operator=(const Parameter& right){ _val=right._val; return *this;}
   /// Return the underlying variable by reference
-  const T& GetValue(){ return _val; }
+  const T& GetValue() const { return _val; }
+  ///Return the underlying variable by pointer
+  const T* GetPointer() const { return &_val; }
   /// Print information about this parameter
   virtual int PrintHelp(const std::string& myname="") const;
+    
+  ///Clone to new ParameterList
+  virtual Parameter<T>* Clone(const void* from, void* to) const;
+  
+  ///access to the type of parameter for copy usage
+  typedef T param_type;
 protected:
   /// Read the underlying variable from an istream
   virtual std::istream& ReadFrom( std::istream& in , bool single=false);
   /// Write the underlying variable to an ostream
-  virtual std::ostream& WriteTo( std::ostream& out , bool, int);
-  /// Read unsigned integers from istreams possibly in hex format
-  virtual unsigned long ReadUnsignedInt(std::istream& in){
-    std::string temp;
-    in>>temp;
-    if(temp[0] == '0' && (temp[1] == 'x' || temp[1] == 'X'))
-      return std::strtoul(temp.c_str(),0,16);
-    else
-      return std::strtoul(temp.c_str(),0,10);
-  }
+  virtual std::ostream& WriteTo( std::ostream& out , bool showhelp=false, 
+				 int indent=0) const;
+  
+  //implementation of read/write is done with impls so we can overload
+  /*std::istream& read_impl(std::istream& in, T& t){ return in>>t; }
+  std::ostream& write_impl(std::ostream& out, T& t, 
+			   bool showhelp=false, int indent=0){ return out<<t; }
+  */
+  //specific impl overload
+  
 private:
   T& _val; ///< reference to the wrapped underyling variable
 };
-  
-//template members must go here so they'll actually get compiled
-template<class T>
+
+template<class T> 
 inline std::istream& Parameter<T>::ReadFrom(std::istream& in, bool)
 {
-  if( !( in >> _val ) && !in.eof()){
+  if( !ParameterIOimpl::read(in, _val) && !in.eof()){
     Message e(EXCEPTION);
     e<<"Error trying to read parameter with default key "<<_default_key<<"!\n";
     throw std::invalid_argument(e.str());
@@ -74,10 +86,10 @@ inline std::istream& Parameter<T>::ReadFrom(std::istream& in, bool)
   return in;
 }
 
-template<class T>
-inline std::ostream& Parameter<T>::WriteTo(std::ostream& out, bool, int)
+template<class T> 
+inline std::ostream& Parameter<T>::WriteTo(std::ostream& out, bool showhelp, int indent) const
 {
-  return out<<_val;
+  return ParameterIOimpl::write(out, _val, showhelp, indent);
 }
 
 template<class T>
@@ -85,7 +97,9 @@ inline int Parameter<T>::PrintHelp(const std::string& myname) const
 {
   VParameterNode::PrintHelp(myname);
   std::cout<<"Parameter type: "<<typeid(_val).name()<<"\n"
-	   <<"Current Value:  "<<_val<<std::endl;
+	   <<"Current Value:  ";
+  ParameterIOimpl::write(std::cout, _val, true);
+  std::cout<<std::endl;
   std::string dummy;
   std::cout<<"\nHit <enter> to continue.";
   std::getline(std::cin, dummy);
@@ -94,103 +108,12 @@ inline int Parameter<T>::PrintHelp(const std::string& myname) const
   return 0;
 }
 
-/// Specific ostream overload for booleans
-template<> inline std::ostream& Parameter<bool>::WriteTo(std::ostream& out, bool, int)
+template<class T> inline 
+Parameter<T>* Parameter<T>::Clone(const void* from, void* to) const
 {
-  return out<<std::boolalpha<<_val<<std::noboolalpha;
+  unsigned diff = (const char*)(GetPointer()) - (const char*)from;
+  return new Parameter<T>((T&)(*( (char*)to+diff )), _default_key, _helptext); 
 }
 
-/// specific istream overload for booleans
-template<> inline std::istream& Parameter<bool>::ReadFrom(std::istream& in, bool)
-{
-  std::string temp;
-  in>>temp;
-  if(temp == "1" || temp == "true" || temp == "TRUE")
-    _val = true;
-  else if( temp == "0" || temp == "false" || temp == "FALSE" )
-    _val = false;
-  else{
-    Message e(EXCEPTION);
-    e<<"Expected boolean value, got "<<temp<<std::endl;
-    throw std::invalid_argument(e.str());
-  }
-  return in;
-}
 
-/// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned>::WriteTo(std::ostream& out, bool, int)
-{
-  return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
-}
-
-/// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned char>::WriteTo(std::ostream& out, bool,int)
-{
-  return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
-}
-
-/// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned short>::WriteTo(std::ostream& out, bool, int)
-{
-  return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
-}
-
-/// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned long>::WriteTo(std::ostream& out, bool, int)
-{
-  return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
-}
-
-/// Write the 0x prefix on unsigned integers
-template<> inline std::ostream& Parameter<unsigned long long>::WriteTo(std::ostream& out, bool, int)
-{
-  return out<<std::hex<<std::showbase<<_val<<std::noshowbase<<std::dec;
-}
-
-/// Read unsigned ints either in decimal or hex format
-template<> inline std::istream& Parameter<unsigned>::ReadFrom(std::istream& in, bool)
-{
-  _val = ReadUnsignedInt(in); return in;
-}
-
-/// Read unsigned ints either in decimal or hex format
-template<> inline std::istream& Parameter<unsigned char>::ReadFrom(std::istream& in, bool)
-{
-  _val = ReadUnsignedInt(in); return in;
-}
-
-/// Read unsigned ints either in decimal or hex format
-template<> inline std::istream& Parameter<unsigned short>::ReadFrom(std::istream& in, bool)
-{
-  _val = ReadUnsignedInt(in); return in;
-}
-
-/// Read unsigned ints either in decimal or hex format
-template<> inline std::istream& Parameter<unsigned long>::ReadFrom(std::istream& in, bool)
-{
-  _val = ReadUnsignedInt(in); return in;
-}
-
-/// Read unsigned ints either in decimal or hex format
-template<> inline std::istream& Parameter<unsigned long long>::ReadFrom(std::istream& in, bool)
-{
-  _val = ReadUnsignedInt(in); return in;
-}
-
-///Override std::strings to allow enclosing in "", but not require
-template<> inline std::istream& Parameter<std::string>::ReadFrom(std::istream& in, bool)
-{
-  phrase temp;
-  in>>temp;
-  _val = temp;
-  return in;
-    
-}
-  
-///Override std::string to always be quoted
-template<> inline std::ostream& Parameter<std::string>::WriteTo(std::ostream& out, bool, int)
-{
-  phrase temp(_val);
-  return out<<temp;
-}
 #endif

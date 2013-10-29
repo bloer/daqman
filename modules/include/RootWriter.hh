@@ -107,10 +107,10 @@ inline std::istream& operator>>(std::istream& in, BranchDisabler& d)
 }
 
 /// Don't print anything for BranchEnabler
-inline std::ostream& operator<<(std::ostream& out, BranchEnabler& )
+inline std::ostream& operator<<(std::ostream& out, const BranchEnabler& )
 { return out; }
 /// Don't print anything for BranchDisabler
-inline std::ostream& operator<<(std::ostream&out, BranchDisabler& )
+inline std::ostream& operator<<(std::ostream&out, const BranchDisabler& )
 { return out; }
 
 #endif

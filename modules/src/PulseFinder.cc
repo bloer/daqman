@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <cmath>
 
-std::ostream& operator<<(std::ostream& out, PulseFinder::SEARCH_MODE& m)
+std::ostream& operator<<(std::ostream& out, const PulseFinder::SEARCH_MODE& m)
 {
   switch(m){
   case PulseFinder::VARIANCE:

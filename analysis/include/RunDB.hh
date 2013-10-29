@@ -211,7 +211,7 @@ namespace RunDB{
     long events;          ///< number of events in the tree 
     double livetime;      ///< runtime scaled by the number of accepted triggers
     runtype type;         ///< what class of run it is (laser, background, etc)
-    phrase comment;       ///< generic info about the run
+    std::string comment;       ///< generic info about the run
     double drift_hv;      ///< setting of the drift_hv field
     double extraction_hv; ///< setting of the extraction_hv field
     double trigger_veto;  ///< length of per-trigger veto in msec, -1 disables
@@ -227,7 +227,7 @@ namespace RunDB{
     class channelinfo{
 #endif
     public:
-      channelinfo();
+      channelinfo(int ch=-1);
       virtual ~channelinfo() {}
       void InitializeParameterList(); 
       /// Search the calibration database for scale factors
@@ -244,36 +244,23 @@ namespace RunDB{
       int cal_filters;           ///< use only calibration runs with n filters
       bool reload_cal;           ///< Use previous calibration or search db?
       bool reload_cal_run;       ///< Search for new optimum calibration run?
-            
+      
       ///comparison operator for channel number
-      bool operator==(int chan){ return chan == channel; }
+      bool operator==(int chan) const{ return chan == channel; }
       ///comparison operator for channelinfo object
-      bool operator==(const channelinfo& right){ return right.channel==channel;}
-      ClassDef(channelinfo,1);
+      bool operator==(const channelinfo& right) const
+      { return right.channel==channel;}
+      ///less than comparson for set storage
+      bool operator<(const channelinfo& right) const
+      { return channel<right.channel; }
+      ClassDef(channelinfo,2);
     };
-    std::vector<channelinfo> channels;  ///< vector of channel info
     
-    channelinfo* GetChannelInfo(int channel); ///< Get the info for channel n
+    std::set<channelinfo> channels;  ///< vector of channel info
     
-    class channel_inserter{
-      runinfo* _parent;
-    public:
-      channel_inserter(runinfo* parent) : _parent(parent) {}
-      static std::string GetFunctionName(){ return "insert_channel"; }
-      std::istream& operator()(std::istream& in);
-      std::ostream& operator()(std::ostream& out);
+    const channelinfo* GetChannelInfo(int channel); ///< Get the info for channel n
       
-    };//end channel_inserter utility
-    
-    class channel_clearer{
-      runinfo* _parent;
-    public:
-      channel_clearer(runinfo* parent) : _parent(parent){}
-      static std::string GetFunctionName(){ return "clear_channels";}
-      std::istream& operator()(std::istream& in);
-    };//end channel_clearer utility
-      
-      ClassDef(runinfo,2);
+    ClassDef(runinfo,2);
   };
 
    /** @class campaigninfo
@@ -327,7 +314,7 @@ namespace RunDB{
 };
   
       std::istream& operator>>(std::istream& in, RunDB::runinfo::runtype& type);
-      std::ostream& operator<<(std::ostream& out, RunDB::runinfo::time_param& t);
+      std::ostream& operator<<(std::ostream& out, const RunDB::runinfo::time_param& t);
       std::istream& operator>>(std::istream& in, RunDB::runinfo::time_param& t);
       
       

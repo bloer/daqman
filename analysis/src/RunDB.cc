@@ -123,18 +123,15 @@ void RunDB::runinfo::InitializeParameterList()
 		    "Length of pre-trigger digitization window in us");
   RegisterParameter("post_trigger_time_us",post_trigger_time_us,
 		    "Length of post-trigger digitization window in us");
+  RegisterParameter("channels", channels, "Set of info for all channels");
+  RegisterReadFunction("clear_channels" , ConfigFunctorDummyRead(), 
+		       "obsolete reference for back-compatibility");
   
-  RegisterFunction(channel_inserter::GetFunctionName(),
-		   channel_inserter(this), channel_inserter(this),
-		   "Insert a daq channel's info into the database");
-  RegisterReadFunction(channel_clearer::GetFunctionName(),
-		       channel_clearer(this),
-		       "Clear the list of channel info");
 }
 
-RunDB::runinfo::channelinfo::channelinfo() : 
+RunDB::runinfo::channelinfo::channelinfo(int ch) : 
   ParameterList("channelinfo","Information about the state of a daq channel for database insertion"), 
-  channel(-1) , voltage(0), amplification(1), spe_mean(1), spe_sigma(0), calibration_run(-1),
+  channel(ch) , voltage(0), amplification(1), spe_mean(1), spe_sigma(0), calibration_run(-1),
   calibration_channel(-1), cal_filters(2), reload_cal(true), 
   reload_cal_run(true)
 {
@@ -195,33 +192,7 @@ bool RunDB::runinfo::SyncWithDatabase()
   return false;
 }
 
-std::istream& RunDB::runinfo::channel_clearer::operator()(std::istream& in)
-{
-  _parent->channels.clear();
-  return in;
-}  
 
-std::istream& RunDB::runinfo::channel_inserter::operator()(std::istream& in){
-  channelinfo info;
-  in>>info;
-  //make sure it isn't there already
-  for(size_t i=0; i < _parent->channels.size(); i++){
-    if(_parent->channels[i].channel == info.channel){
-      _parent->channels[i] = info;
-      return in;
-    }
-  }
-  _parent->channels.push_back(info);
-  return in;
-}
-
-std::ostream& RunDB::runinfo::channel_inserter::operator()(std::ostream& out){
-  out<<"\n"<<channel_clearer::GetFunctionName()<<" ,\n";
-  for(size_t i=0; i < _parent->channels.size(); i++){
-    out<<GetFunctionName()<<" "<<_parent->channels.at(i)<<" ";
-  }
-  return out;
-}  
 
 
 int RunDB::InsertLaserInfo(const std::vector<RunDB::laserinfo>& info)
@@ -285,7 +256,7 @@ std::istream& operator>>(std::istream& in, RunDB::runinfo::time_param& t)
   return in;
 }
 /// Make time_t print as a string
-std::ostream& operator<<(std::ostream& out,RunDB::runinfo::time_param& t)
+std::ostream& operator<<(std::ostream& out,const RunDB::runinfo::time_param& t)
 {
   char str[20];
   std::strftime(str,20,"%Y-%m-%d %H:%M:%S",std::gmtime(&t.t));
@@ -367,10 +338,9 @@ int RunDB::runinfo::LoadCalibrationInfo()
   return 0;
 }
 
-RunDB::runinfo::channelinfo* RunDB::runinfo::GetChannelInfo(int channel)
+const RunDB::runinfo::channelinfo* RunDB::runinfo::GetChannelInfo(int channel)
 {
-  std::vector<channelinfo>::iterator ch = 
-    std::find(channels.begin(), channels.end(), channel);
+  std::set<channelinfo>::iterator ch = channels.find(channel);
   if(ch != channels.end())
     return &(*ch);
   return 0;

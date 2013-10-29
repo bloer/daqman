@@ -19,6 +19,7 @@ ParameterList::ParameterList(const ParameterList& right) :
   VParameterNode(right._default_key, right._helptext)
 {
   _node_type = PARAMETER_LIST;
+  CopyPlistRelative(right);
 }
 
 ParameterList& ParameterList::operator=(const ParameterList& right)
@@ -27,6 +28,30 @@ ParameterList& ParameterList::operator=(const ParameterList& right)
   _parameters.clear();
   return *this;
 }
+
+void ParameterList::CopyPlistRelative(const ParameterList& right)
+{
+  ParMap::const_iterator it;
+  for(it = right._parameters.begin(); it != right._parameters.end(); ++it){
+    VParameterNode* newnode = it->second->Clone(&right, this);
+    switch(newnode->GetNodeType()){
+    case FUNCTION:
+    case PARAMETER:{
+      boost::shared_ptr<VParameterNode> ptr(newnode);
+      _deleter.push_back(ptr);
+      _parameters.insert(std::make_pair(it->first,newnode));
+      break;
+    }
+    case PARAMETER_LIST:
+      _parameters.insert(std::make_pair(it->first, newnode));
+      break;
+    default:
+      break;
+    }
+  
+  }//end loop over map iterator
+}
+
 
 VParameterNode* const ParameterList::GetParameter(const std::string& key){
   ParMap::iterator it = _parameters.find(key);
@@ -94,6 +119,7 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
     //anything else should be the start of a key 
     //so put it back and read in the key
     in.unget();
+
     std::string bigkey;
     if( !(in>>bigkey) ){
       //somethings messed up.  Throw an exception and die
@@ -116,7 +142,9 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
     //read all the keys listed
     std::streampos start = in.tellg();
     for(size_t ikey = 0; ikey<keylist.size(); ++ikey){
-      in.seekg(start);
+      if(ikey>0)
+	in.seekg(start);
+
       std::string key = keylist[ikey];
       //see if the key has '.' in it
       bool sendsingle = false;
@@ -178,10 +206,10 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
 }
 
 std::ostream& ParameterList::WriteTo( std::ostream& out, bool showhelp,
-				      int indent)
+				      int indent) const
 {
-  if(_parameters.empty())
-    InitializeParameterList();
+  //if(_parameters.empty())
+  //InitializeParameterList();
   std::stringstream dummy;
   dummy<<'\n';
   for(int i=0; i < indent; i++)
@@ -190,7 +218,7 @@ std::ostream& ParameterList::WriteTo( std::ostream& out, bool showhelp,
 
   //print an opening parenthesis to mark the beginning
   out<<"( "<<newline;
-  ParMap::iterator mapit;
+  ParMap::const_iterator mapit;
   mapit = _parameters.begin();
   //Loop over all the parameters in the map and pass the stream to them
   while( !out.fail() && mapit != _parameters.end() ){

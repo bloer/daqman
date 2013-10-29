@@ -48,16 +48,6 @@ private:
   long _id_mismatches;           ///< Number of events with ID mismatch
   bool _headers_only;            ///< Only process data headers, not the bulk
 public:
-  ///Auxiliary class to read the channel offsets
-  class ChOffsetLoader{
-  private:
-    ConvertData* _parent;
-  public:
-    ChOffsetLoader(ConvertData* parent) : _parent(parent){}
-    std::istream& operator()(std::istream& in);
-    std::ostream& operator()(std::ostream& out);
-    static std::string GetFuncName(){ return "offset_channel"; }
-  };
 
 };
 

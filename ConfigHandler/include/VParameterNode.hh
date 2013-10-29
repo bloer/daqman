@@ -18,6 +18,7 @@
     
     @ingroup ConfigHandler    
 */
+
 class VParameterNode{
 public:
   /// Default Constructor
@@ -39,7 +40,7 @@ public:
 				       bool suppress_errs=false);
   /// Write this parameter to an ostream
   virtual std::ostream& WriteTo( std::ostream& out , bool showhelp=false, 
-				 int indent=0)=0;
+				 int indent=0) const =0;
   /// Get the default name of this parameter
   const std::string& GetDefaultKey() const { return _default_key; }
   /// Set the default name of this parameter
@@ -53,6 +54,9 @@ public:
   const std::string& GetHelpText(){ return _helptext; }
   /// Set the associated help text
   void SetHelpText(const std::string& newtext){ _helptext = newtext; }
+  
+  ///Clone the object onto a new parameter list
+  virtual VParameterNode* Clone(const void* from, void* to) const =0;
 
 protected:
   /** @enum NODE_TYPES
@@ -72,7 +76,7 @@ inline std::istream& operator>>(std::istream& in, VParameterNode& p)
 }
 
 /// Overload ostream operator for VParameterNode
-inline std::ostream& operator<<(std::ostream& out, VParameterNode& p)
+inline std::ostream& operator<<(std::ostream& out, const VParameterNode& p)
 {
   return p.WriteTo(out);
 }

@@ -40,22 +40,22 @@ enum BOARD_TYPE { V1724 = 0, V1721 = 1, V1720 = 3 , V1751 = 5, OTHER = 256};
 
 //need iostream operators for all enums
 /// SIGNAL_LOGIC ostream overload
-std::ostream& operator<<(std::ostream& out, SIGNAL_LOGIC logic);
+std::ostream& operator<<(std::ostream& out, const SIGNAL_LOGIC& logic);
 /// SIGNAL_LOGIC istream overload
 std::istream& operator>>(std::istream& in, SIGNAL_LOGIC &logic);
 
 /// ZERO_SUPPRESSION_TYPE ostream overload
-std::ostream& operator<<(std::ostream& out, ZERO_SUPPRESSION_TYPE zs);
+std::ostream& operator<<(std::ostream& out, const ZERO_SUPPRESSION_TYPE& zs);
 /// ZERO_SUPPRESSION_TYPE istream overload
 std::istream& operator>>(std::istream& in, ZERO_SUPPRESSION_TYPE &zs);
 
 /// TRIGGER_POLARITY ostream overload
-std::ostream& operator<<(std::ostream& out, TRIGGER_POLARITY pol);
+std::ostream& operator<<(std::ostream& out, const TRIGGER_POLARITY& pol);
 /// TRIGGER_POLARITY istream overload
 std::istream& operator>>(std::istream& in, TRIGGER_POLARITY &pol);
 
 /// BOARD_TYPE ostream overload
-std::ostream& operator<<(std::ostream& out, BOARD_TYPE type);
+std::ostream& operator<<(std::ostream& out, const BOARD_TYPE& type);
 /// BOARD_TYPE istream overload
 std::istream& operator>>(std::istream& in, BOARD_TYPE &type);
 

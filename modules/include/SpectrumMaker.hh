@@ -49,4 +49,5 @@ private:
   bool _logx;             ///< Should we use logarithmic x axis?
 };
   
+
 #endif

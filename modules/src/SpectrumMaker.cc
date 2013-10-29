@@ -45,7 +45,8 @@ SpectrumMaker::~SpectrumMaker()
 {
   Finalize();
 }
-  
+
+
 int SpectrumMaker::Initialize()
 {
   if(_xvar == "" || _nbinsx == 0 || _xmin == _xmax || 
