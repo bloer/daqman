@@ -175,8 +175,8 @@ LinkDef.h: $(DICTHEADS)
 	@echo "#pragma link off all classes;" >>$@
 	@echo "#pragma link off all functions;" >>$@
 	@echo "#pragma link C++ nestedclasses;" >>$@
-	@echo "#pragma link C++ global functions;\n" >>$@
-	@echo "$(^:%=#pragma link C++ defined_in \"%\";\n)" >>$@
+	@echo "#pragma link C++ global functions;" >>$@
+	@$(foreach d,$^,echo "#pragma link C++ defined_in \"$(d)\";" >>$@;)
 	@echo "#endif /*__CINT__*/" >>$@
 
 $(DICT): $(DICTHEADS) LinkDef.h
@@ -211,6 +211,7 @@ distclean: clean
 	rm -rf libdaqman
 	rm -f $(BIN)
 	rm -rf lib bin
+	rm -f LinkDef.h
 	rm -f $(DICT:%.cc=%.*)
 	rm -f .deps .deps.bak
 	rm -rf doc/html doc/latex
