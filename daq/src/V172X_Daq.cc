@@ -11,7 +11,6 @@ which inherits from the WARP_VetoDAQ class.
 #include "Message.hh"
 #include "ConfigHandler.hh"
 #include "EventHandler.hh"
-#include "RunDB.hh"
 #include <string>
 #include <time.h>
 #include <bitset>
@@ -212,7 +211,7 @@ int V172X_Daq::Update()
 	continue;
       //determine the trigger acquisition window for the database
       //WARNING: Assumes it is the same for all boards!!!
-      RunDB::runinfo* info = EventHandler::GetInstance()->GetRunInfo();
+      runinfo* info = EventHandler::GetInstance()->GetRunInfo();
       if(info){
 	info->pre_trigger_time_us = board.pre_trigger_time_us;
 	info->post_trigger_time_us = board.post_trigger_time_us;

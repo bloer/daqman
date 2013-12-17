@@ -8,7 +8,6 @@
 #define CONVERTDATA_h
 
 #include "BaseModule.hh"
-#include "RunDB.hh"
 #include <map>
 
 class V172X_Params;
@@ -16,6 +15,8 @@ class V172X_Params;
     @brief Convert the raw data pointer to useable variables
     @ingroup modules
 */
+
+class runinfo;
 class ConvertData : public BaseModule
 {
 public:
@@ -43,8 +44,7 @@ private:
   uint64_t previous_event_time;   ///< time at which the previous event occurred
   std::map<int,double> _offsets;   ///< software offset time in us
   V172X_Params* _v172X_params;    ///< saved info for a v172x event
-  RunDB::runinfo* _info;         ///< database information for this run
-  RunDB::campaigninfo* _cpinfo;  ///< database information for this campaign
+  runinfo* _info;                ///< database information for this run
   long _id_mismatches;           ///< Number of events with ID mismatch
   bool _headers_only;            ///< Only process data headers, not the bulk
 public:

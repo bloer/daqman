@@ -100,7 +100,7 @@ int ProcessedPlotter::Initialize()
   }
   
   //only draw pmt weights if there is pmt info from the database
-  if(evhandler->GetCampaignInfo()->pmts.empty())
+
     drawpmtweights = false;
   //also disable pmtweights if not S1S2Evaluation
   S1S2Evaluation* eval = evhandler->GetModule<S1S2Evaluation>();
@@ -295,82 +295,7 @@ int ProcessedPlotter::Process(EventPtr event)
     //_canvas[PULSES]->Update();
     new PadZoomer(pulsepad);
   }
-  if(drawpmtweights && _canvas[PMTWEIGHTS]){
-    //Plot distribution of light on PMTs
-    _canvas[PMTWEIGHTS]->Clear();
-    _canvas[PMTWEIGHTS]->SetTitle(title);
-    _canvas[PMTWEIGHTS]->Divide(2,2);
-    double scale_s1 = 0;
-    double scale_s2 = 0;
-    if(scale_pmts_sum)
-    {
-	scale_s1 = data->s1_fixed;
-	scale_s2 = data->s2_fixed;
-    }	
-    for(int pad=1; pad<=4; ++pad){
-      _canvas[PMTWEIGHTS]->cd(pad);
-      std::vector<TEllipse*> circles;
-      double maxsize = 0;
-      for(size_t ch=0 ; ch < data->channels.size(); ++ch){
-	ChannelData& chdata = data->channels[ch];
-	
-	double amp = (pad%2 ? chdata.s1_fixed : chdata.s2_fixed);
-	if(!scale_pmts_sum)
-	{
-	    scale_s1 = (pad%2 ? std::max(amp, scale_s1): scale_s1);
-	    scale_s2 = (pad%2 ? scale_s2 : std::max(amp, scale_s2));
-	}
-	
-	if( (chdata.channel_id < 0) || 
-	    ( pad>2 && chdata.pmt.photocathode_z > 0) ||
-	    ( pad<=2 && chdata.pmt.photocathode_z < 0) )
-	  continue;
-	double x = chdata.pmt.photocathode_x;
-	double y = chdata.pmt.photocathode_y;
-	double r = sqrt(x*x + y*y);
-	double cathode_r = sqrt(chdata.pmt.photocathode_area/3.1415927);
-	maxsize = std::max(maxsize,r+cathode_r);
-	//use the theta parameter to store the ellipse's amplitude
-	circles.push_back(new TEllipse(x,y,cathode_r,cathode_r,0,360,amp));
-      }//end loop over channels
-      //draw the x,y axes
-      maxsize *= 1.1;
-      std::string title="S1 ";
-      if( pad%2==0 ) title = "S2 ";
-      if( pad < 3)   title += "TOP";
-      else           title += "BOTTOM";
-      if( (pad%2 && !data->s1_fixed_valid) || 
-	  (pad%2==0 && !data->s2_fixed_valid) ) title += " INVALID";
-      double scale = (pad%2 ? scale_s1 : scale_s2);
-      TH2F* axes = new TH2F(title.c_str(),title.c_str(),
-			    100,-maxsize*1.1,maxsize, 100,-maxsize,maxsize);
-      //fill an invisible bin to set the scale
-      axes->Fill(0.,0.,scale);
-      axes->SetStats(0);
-      axes->SetBit(TObject::kCanDelete, true);
-      axes->Draw("colz");
-      
-      //set the PMT marker colors and draw them
-      int ncols = TColor::GetNumberOfColors()-1;
-      for(size_t i=0; i<circles.size(); ++i){
-	TEllipse* el = circles[i];
-	el->SetBit(TObject::kCanDelete,true);
-	int colornum = (int)(el->GetTheta()/scale * ncols);
-	el->SetFillColor(TColor::GetColorPalette(colornum));
-	el->Draw();
-      }
-      if(pad == 2 && data->bary_valid){
-	//draw the xy barycenter
-	TMarker* bary = new TMarker(data->bary_x, data->bary_y, 29);
-	bary->SetMarkerSize(3);
-	bary->SetMarkerColor(kYellow);
-	bary->SetBit(TObject::kCanDelete,true);
-	bary->Draw();
-      }
-    }
-    _canvas[PMTWEIGHTS]->cd(0);
-    //_canvas[PMTWEIGHTS]->Update();
-  }
+  
 
   return 0;
 }

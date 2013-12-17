@@ -20,7 +20,6 @@
 #include "Spe.hh"
 #include "Unspikes.hh"
 #include "Roi.hh"
-#include "PMTData.hh"
 #include "TOF.hh"
 
 class TGraph;
@@ -95,7 +94,6 @@ public:
   const char* channel_end;   //!< pointer to end of waveform
   double spe_mean;     ///< mean photoelectron response read from database
   double spe_sigma;
-  PMTData pmt; //!< Information regarding corresponding PMT
   //vector waveforms
   std::vector<double> waveform; //!< Raw waveform as a double array
   std::vector<std::pair<int,int> > unsuppressed_regions; //!< list of begin,end sample of non-zero-suppressed regions in the waveform
@@ -155,7 +153,7 @@ inline void ChannelData::Clear()
   channel_end = NULL;
   spe_mean = 1.;
   spe_sigma = 0.;
-  pmt.Clear();
+
   baseline.Clear();
   tof.Clear();
   subtracted_waveform.clear();

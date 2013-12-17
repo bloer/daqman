@@ -29,7 +29,9 @@
 #include "ConvertData.hh"
 #include "SumChannels.hh"
 #include "TriggerHistory.hh"
-#include "RunDB.hh"
+
+#include "runinfo.hh"
+
 #include "kbhit.h"
 #include <exception>
 #include <string>
@@ -133,13 +135,13 @@ int main(int argc, char** argv)
   long long stop_size = -1;
   int stattime=0;
   bool write_only = false;
-  RunDB::runinfo* info = modules->GetRunInfo();
+  runinfo* info = modules->GetRunInfo();
   std::string testmode_file="";
   int testmode_dt = 0;
   int graphics_refresh = 1;
   bool require_comment = false;
   config->AddCommandSwitch('i', "info", "Set run database info to <info>",
-			   CommandSwitch::DefaultRead<RunDB::runinfo>(*info),
+			   CommandSwitch::DefaultRead<runinfo>(*info),
 			   "info");
   config->AddCommandSwitch('m',"message","Set database comment to <message>",
 			   CommandSwitch::DefaultRead<std::string>(info->comment),

@@ -45,7 +45,7 @@ EventHandler::EventHandler() :
 {
   ConfigHandler* config = ConfigHandler::GetInstance();
   config->RegisterParameter(this->GetDefaultKey(),*this);
-  config->RegisterParameter(_dbinfo.GetDefaultKey(), _dbinfo);
+  config->RegisterParameter(_runinfo.GetDefaultKey(), _runinfo);
   RegisterParameter("access_database", _access_database=false,
 		    "Do we query the database for run/calibration info?");
   RegisterParameter("fail_on_bad_cal", _fail_on_bad_cal=false,
@@ -115,6 +115,7 @@ int EventHandler::Initialize()
   _is_initialized = true;
   
   //initialize the runinfo
+  /* skip for now until we're more defined
   //try to load the info from a saved cfg file, only if not in this file
   if(_dbinfo.channels.empty()){
     Message(DEBUG)<<"Searching for runinfo in saved cfg file.\n";
@@ -131,6 +132,7 @@ int EventHandler::Initialize()
     if(!sync)
       Message(WARNING)<<"Unable to load runinfo from database.\n";
   }
+
   //try to load calibration from the db also 
   if(!_dbinfo.channels.empty() && _access_database){
     Message(DEBUG)<<"Loading calibration factors from database.\n";
@@ -140,20 +142,10 @@ int EventHandler::Initialize()
       return -1;
     }    
   }
-  
-  //try to load campaign info from the database 
-  if(_access_database && _dbinfo.starttime.t>0){
-    Message(DEBUG)<<"EventHandler::Initialize(): "
-		  <<"Loading campaign info from database.\n";
-    int good_pmts = _cpinfo.LoadCampaignInfo(_dbinfo.starttime.t);
-    if (good_pmts < (int)_dbinfo.channels.size())
-      Message(WARNING)<<"EventHandler::Initialize(): "
-		      <<"Unable to load campaign info from database.\n";
-  }
-  
+  */  
   
   //this info is in the raw file, so reset it:
-  _dbinfo.ResetRunStats();
+  _runinfo.ResetRunStats();
   
   //first initialize all enabled modules
   std::set<std::string> enabled_modules;
@@ -277,7 +269,7 @@ int EventHandler::Finalize()
     }
   }
   //reset the run info
-  _dbinfo.Init(true);
+  _runinfo.Init(true);
   Message(DEBUG)<<"Done finalizing modules.\n";
   if(final_fail)
     Message(WARNING)<<"Finalization returned error code "<<final_fail<<"\n";
