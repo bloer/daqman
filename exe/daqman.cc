@@ -79,6 +79,14 @@ public:
   }
 };
   
+class InsertComment{
+  runinfo* _info;
+public:
+  InsertComment(runinfo* info) : _info(info) {}
+  int operator()(const char* val){ 
+    _info->SetMetadata("comment",std::string(val)) ; return 0; 
+  }
+};
 
 int main(int argc, char** argv)
 {
@@ -139,13 +147,11 @@ int main(int argc, char** argv)
   std::string testmode_file="";
   int testmode_dt = 0;
   int graphics_refresh = 1;
-  bool require_comment = false;
   config->AddCommandSwitch('i', "info", "Set run database info to <info>",
 			   CommandSwitch::DefaultRead<runinfo>(*info),
 			   "info");
   config->AddCommandSwitch('m',"message","Set database comment to <message>",
-			   CommandSwitch::DefaultRead<std::string>(info->comment),
-			   "message");
+			   InsertComment(info),"message");
 			   
   config->AddCommandSwitch('e',"stop_events","Stop after <n> events",
 			   CommandSwitch::DefaultRead<long>(stop_events),
@@ -177,8 +183,6 @@ int main(int argc, char** argv)
 			    "Maximum number of events before we abort the run");
   config->RegisterParameter("stat-time",stattime,
 			    "Time between printing of event/data rates");
-  config->RegisterParameter("require_comment", require_comment,
-			    "Require a runinfo comment for the run to proceed");
   
   V172X_Daq daq;
     
@@ -204,18 +208,8 @@ int main(int argc, char** argv)
   
   if(writer->enabled){
     modules->SetRunIDFromFilename(writer->GetFilename());
-    //only require comment if saving
-    if(require_comment){
-      while(info->comment == ""){
-	//sleep a bit to clear the message queue
-	boost::this_thread::sleep(boost::posix_time::millisec(100));
-	std::cout<<"Please enter a descriptive comment for this run:"
-		 <<std::endl;
-	std::getline(std::cin, info->comment);
-      }
-    }
-  
   }
+  
   //see if we want to disable everything
   if(write_only){
     std::vector<BaseModule*>* mods = modules->GetListOfModules();
@@ -355,6 +349,7 @@ int main(int argc, char** argv)
       //end the asyncronous threads
       for(size_t i=0; i<async_threads.size(); ++i)
 	async_threads[i]->StopRunning();
+      
       modules->Finalize();
       //print out some statistics
       Message(INFO)<<events_downloaded<<" events processed.\n";

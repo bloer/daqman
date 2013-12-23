@@ -40,7 +40,7 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
     }
   }
     
-  if(comment != "") info->comment = comment;  
+  if(comment != "") info->SetMetadata("comment",comment);
   if(force_regen || info->runid <=0 || 
      info->starttime == 0 || info->endtime == 0 ||
      info->events == 0 ){
@@ -97,10 +97,12 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
     }
   case 'Y':
   case 'y':
-    if(info->comment == ""){
+    if(info->GetMetadata("comment") == ""){
       cout<<"Please enter a comment for this run:"<<endl;
       cin.ignore(100,'\n');
-      getline(cin, info->comment);
+      std::string c;
+      getline(cin, c);
+      info->SetMetadata("comment",c);
     }
     //info->InsertIntoDatabase();
     break;

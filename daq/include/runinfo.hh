@@ -16,6 +16,7 @@
 #include <map>
 #include <string>
 #include <set>
+#include <sstream>
 #include <time.h>
 
 /** @class runino
@@ -56,36 +57,74 @@ public:
   time_t endtime;              ///< time acquisition finished
   long triggers;               ///< total number of triggers requested
   long events;                 ///< total number of events stored
-  double pre_trigger_time_us;  ///< length of pre trigger window
-  double post_trigger_time_us; ///< length of post trigger window
   
-  // the comment field is treated specially from other metadata
-  std::string comment;         ///< general comment about run conditions
-  std::string post_comment;    ///< Additional comment provided after the run
-  
+
+public:
   typedef std::set<std::string> stringset;
+  typedef std::vector<std::string> stringvec;
   typedef std::map<std::string, std::string> stringmap;
-  typedef std::map<std::string, stringset> stringsetmap;
   
+  /**@class DialogField
+     @brief utility class to handle querying user for metadata
+   */
+#ifdef __CINT__
+  class DialogField{
+#else
+  class DialogField : public ParameterList{
+#endif
+  public:
+    DialogField(const std::string& field_="", const std::string& desc = "",
+		bool required_=true, const std::string& default_="");
+    virtual ~DialogField() {}
+    bool IsValueValid(const std::string& val) const;
+    std::string fieldname;
+    std::string description;
+    std::vector<std::string> allowed_values;
+    bool required;
+    std::string defaultvalue;
+  };
+  
+  typedef std::vector<DialogField> FieldList;
+  
+private:
   //these fields allow the user to define additional metadata via config files
   ///Arbitrarty per-run info defined by the user
   stringmap metadata; 
   
-  ///List of userinfo fields that will be prompted at run start if not defined
-  stringset required_metadata; 
+  //All the dialog fields refer to entries in the main metadata map
   
-  ///List of allowed options for specific fields. E.g., runtype may have 
-  /// allowed options 'Background', 'Calibration', and 'Normal'
-  stringsetmap field_allowed_values;
+  ///List of fields to query the user for at run start
+  FieldList prerun_dialog_fields;
+  ///List of fields to query the user for at run end
+  FieldList postrun_dialog_fields;
   
   ///Per-channel metadata. Note this cannot be listed as required
   std::map<int, stringmap > channel_metadata;
   //(may add a required_channel_metadata in the future)
   
-private:
-  ///See if this value is in the field's allowed set (if defined)
-  bool CheckFieldValue(const std::string& fieldname, const std::string& val);
+public:
+  //all of the following return 0 for success, 1 for user cancelled, <0 on error
+  enum FILLTIME {RUNSTART, RUNEND};
+  ///Prompt user for any missing/incorrect info. 
+  int FillDataForRun(FILLTIME when=RUNSTART, bool forcedialog=false);
+
+  ///Get metadata
+  std::string GetMetadata(const std::string& key)
+  { stringmap::iterator it = metadata.find(key);
+    return it == metadata.end() ? std::string("") : it->second ; }
+  ///Explicitly set metadata
+  void SetMetadata(const std::string& key, const std::string& val)
+  { metadata[key] = val; }
+
+  ///convenience function to set metadata using ostream overload
+  template<class T> void SetMetadata(const std::string& key, const T& val){
+    std::stringstream s;
+    s<<val;
+    metadata[key] = s.str();
+  }
+
   
+private:
   //make visible to ROOT
   ClassDef(runinfo,1)
 }; 

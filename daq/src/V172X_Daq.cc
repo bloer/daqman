@@ -18,6 +18,7 @@ which inherits from the WARP_VetoDAQ class.
 #include "boost/ref.hpp"
 #include "boost/timer.hpp"
 #include "boost/date_time/posix_time/posix_time_duration.hpp"
+#include <sstream>
 
 //declare some useful constants
 const int event_size_padding = 8;
@@ -213,8 +214,13 @@ int V172X_Daq::Update()
       //WARNING: Assumes it is the same for all boards!!!
       runinfo* info = EventHandler::GetInstance()->GetRunInfo();
       if(info){
-	info->pre_trigger_time_us = board.pre_trigger_time_us;
-	info->post_trigger_time_us = board.post_trigger_time_us;
+	std::stringstream ss;
+	ss<<"board"<<iboard<<".pre_trigger_time_us";
+	info->SetMetadata(ss.str(), board.pre_trigger_time_us);
+	ss.str("");
+	ss<<"board"<<iboard<<".post_trigger_time_us";
+	info->SetMetadata(ss.str(), board.post_trigger_time_us);
+	
       }
        
       uint32_t channel_mask = 0;

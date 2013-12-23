@@ -153,6 +153,7 @@ int ConvertData::Process(EventPtr event)
   _info->starttime = start_time;
   _info->endtime = data->timestamp;
   _info->events = data->event_id+1;
+  _info->triggers = data->trigger_count+1;
   /*
   if(_info->trigger_veto > 0){
     _info->livetime = 1.*data->event_time/ns_per_s - 
@@ -163,14 +164,6 @@ int ConvertData::Process(EventPtr event)
     _info->livetime = 1.*_info->events / data->trigger_count * 
       data->event_time / ns_per_s;
   */
-  if(data->nchans > 0 && 
-     (_info->pre_trigger_time_us < 0 || _info->post_trigger_time_us < 0) ){
-    //WARNING: this assumes all channels have same acquisition times!!!!!
-    ChannelData& ch = data->channels[0];
-    _info->pre_trigger_time_us = -ch.SampleToTime(0);
-    _info->post_trigger_time_us = ch.SampleToTime(ch.nsamps);
-    ///@todo: should that be ch.nsamps-1?
-  }
   return 0;
 }
 

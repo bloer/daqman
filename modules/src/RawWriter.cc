@@ -3,6 +3,7 @@
 #include "ConfigHandler.hh"
 #include "CommandSwitchFunctions.hh"
 #include "EventHandler.hh"
+#include "runinfo.hh"
 #include <time.h>
 #include <string>
 #include <iomanip>
@@ -65,6 +66,16 @@ std::string RawWriter::GetDefaultFilename() const
 
 int RawWriter::Initialize()
 {
+  //query user for run metadata
+  runinfo* info = EventHandler::GetInstance()->GetRunInfo();
+  if(info){
+    int ret = info->FillDataForRun(runinfo::RUNSTART);
+    if(ret){
+      Message(INFO)<<"User cancelled or error filling run metadata; aborting\n";
+      return ret;
+    }
+  }
+  
   if( _filename == ""){
     //was not set manually, so use auto
     _filename = GetDefaultFilename();
@@ -220,6 +231,15 @@ int RawWriter::Finalize()
     }
   }
   if(_save_config && _bytes_written > 0){
+    //query user for run metadata
+    runinfo* info = EventHandler::GetInstance()->GetRunInfo();
+    if(info){
+      int ret = info->FillDataForRun(runinfo::RUNEND);
+      if(ret){
+	Message(WARNING)<<"User cancel or error filling end of run metadata!\n";
+	//return ret;
+      }
+    }
     SaveConfigFile();
   }
   if(_logout.is_open()){
