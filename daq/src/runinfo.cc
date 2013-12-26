@@ -46,6 +46,8 @@ void runinfo::Init(bool reset)
   metadata.clear();
   prerun_dialog_fields.clear();
   postrun_dialog_fields.clear();
+  force_prerun_dialog = false;
+  force_postrun_dialog = false;
   channel_metadata.clear();
   
   if(!reset)
@@ -66,6 +68,11 @@ void runinfo::InitializeParameterList()
 		    "List of fields to query user for at start of run");
   RegisterParameter("postrun_dialog_fields", postrun_dialog_fields,
 		    "List of fields to query user for at end of run");
+  RegisterParameter("force_prerun_dialog", force_prerun_dialog,
+		    "Show prerun dialog even if all required fields valid");
+  RegisterParameter("force_postrun_dialog", force_postrun_dialog,
+		    "Show postrun dialog even if all required fields valid");
+  
   RegisterParameter("channel_metadata", channel_metadata,
 		    "map of channel ID to per-channel metadata");
 }
@@ -330,11 +337,14 @@ RunInfoFillHelper::RunInfoFillHelper(stringmap* metadata, FieldList* fields) :
 
 ////// Finally here's our outside-accessible function to query run data ///////
 
-int runinfo::FillDataForRun(runinfo::FILLTIME when, bool forcedialog)
+int runinfo::FillDataForRun(runinfo::FILLTIME when)
 {
   FieldList* fields = (when == RUNSTART ? &prerun_dialog_fields : 
 		                          &postrun_dialog_fields );
-  if(forcedialog || !AreAllFieldsValid(fields, &metadata))
+  bool forcedialog = (when == RUNSTART ? force_prerun_dialog : 
+		                         force_postrun_dialog );
+  if(fields && !fields->empty() && 
+     (forcedialog || !AreAllFieldsValid(fields, &metadata)) )
     return RunInfoFillHelper::MetadataDialog(&metadata, fields);
   return 0;
 }

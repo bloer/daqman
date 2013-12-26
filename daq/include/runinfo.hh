@@ -97,7 +97,12 @@ private:
   FieldList prerun_dialog_fields;
   ///List of fields to query the user for at run end
   FieldList postrun_dialog_fields;
-  
+    
+  ///Display the prerun dialog even if all fields are already valid
+  bool force_prerun_dialog;
+  ///Display the postrun dialog even if all fields are already valid
+  bool force_postrun_dialog;
+    
   ///Per-channel metadata. Note this cannot be listed as required
   std::map<int, stringmap > channel_metadata;
   //(may add a required_channel_metadata in the future)
@@ -106,7 +111,7 @@ public:
   //all of the following return 0 for success, 1 for user cancelled, <0 on error
   enum FILLTIME {RUNSTART, RUNEND};
   ///Prompt user for any missing/incorrect info. 
-  int FillDataForRun(FILLTIME when=RUNSTART, bool forcedialog=false);
+  int FillDataForRun(FILLTIME when=RUNSTART);
 
   ///Get metadata
   std::string GetMetadata(const std::string& key)
