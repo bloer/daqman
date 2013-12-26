@@ -12,7 +12,9 @@
 #include "TGLabel.h"
 #include "TGComboBox.h"
 #include "TGMsgBox.h"
-
+#include "TMacro.h"
+#include "TList.h"
+#include "TObjString.h"
 
 typedef runinfo::stringmap stringmap;
 typedef runinfo::stringvec stringvec;
@@ -77,6 +79,29 @@ void runinfo::InitializeParameterList()
 		    "map of channel ID to per-channel metadata");
 }
 
+
+int runinfo::LoadSavedInfo(TMacro* mac)
+{
+  //first, read the macro into a stringstream
+  TList* lines = mac->GetListOfLines();
+  if(!lines || !lines->GetEntries())
+    return 1;
+  std::stringstream s;
+  TIter next(lines);
+  TObjString *obj;
+  while ((obj = (TObjString*) next()))
+    s<<obj->GetName()<<"\n";
+  //now use the ParameterList methods to read from the stream
+  try{
+    ReadFromByKey(s, GetDefaultKey());
+  }
+  catch(std::exception& e){
+    //there was an error reading
+    return 2;
+  }
+  //if we get here, we should have been successful
+  return 0;
+}
 
 //////// Everything below here is related to the metadata fill dialogs /////
 

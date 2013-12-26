@@ -7,6 +7,7 @@
 #define RUNINFO_h
 
 //hide this from ROOT
+#include "Rtypes.h"
 #ifndef __CINT__
 #include "ParameterList.hh"
 #endif 
@@ -19,7 +20,9 @@
 #include <sstream>
 #include <time.h>
 
-/** @class runino
+class TMacro;
+
+/** @class runinfo
     @brief Contains default and user-specified metadata about each run acquired
 */
 
@@ -40,6 +43,9 @@ public:
 
   /// Reset the statistics which can be read from the file
   void ResetRunStats();
+  
+  /// Try to load runinfo from config saved in a TMacro; return 0 if success
+  int LoadSavedInfo(TMacro* mac);
   
   //metadata to save for all runs, determined automatically from daq settings
   
@@ -66,12 +72,10 @@ public:
   
   /**@class DialogField
      @brief utility class to handle querying user for metadata
+     Completely hide this from root!
    */
 #ifndef __CINT__
   class DialogField : public ParameterList{
-#else
-    class DialogField{
-#endif
   public:
     DialogField(const std::string& field_="", const std::string& desc = "",
 		bool required_=true, const std::string& default_="");
@@ -85,19 +89,21 @@ public:
   };
   
   typedef std::vector<DialogField> FieldList;
-  
+#endif
+
 private:
   //these fields allow the user to define additional metadata via config files
   ///Arbitrarty per-run info defined by the user
   stringmap metadata; 
   
+#ifndef __CINT__
   //All the dialog fields refer to entries in the main metadata map
-  
   ///List of fields to query the user for at run start
   FieldList prerun_dialog_fields;
   ///List of fields to query the user for at run end
   FieldList postrun_dialog_fields;
-    
+#endif
+
   ///Display the prerun dialog even if all fields are already valid
   bool force_prerun_dialog;
   ///Display the postrun dialog even if all fields are already valid
@@ -130,7 +136,7 @@ public:
 
   
 private:
-
+  ClassDef(runinfo,1);
 }; 
 
 

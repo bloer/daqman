@@ -115,35 +115,16 @@ int EventHandler::Initialize()
   _is_initialized = true;
   
   //initialize the runinfo
-  /* skip for now until we're more defined
-  //try to load the info from a saved cfg file, only if not in this file
-  if(_dbinfo.channels.empty()){
-    Message(DEBUG)<<"Searching for runinfo in saved cfg file.\n";
-    ConfigHandler::GetInstance()->LoadParameterList(&_dbinfo);
+  //how to allow overriding runinfo settings?
+  try{
+    ConfigHandler::GetInstance()->LoadParameterList(&_runinfo);
   }
-  //if we couldn't load the runid from the saved file, see if it was set already
-  if(_dbinfo.runid == -1){
-    _dbinfo.runid = run_id;
+  catch(std::exception& e){
+    Message(WARNING)<<"Saved runinfo will not be used in this processing!\n";
   }
-  //the database info is the best source
-  if(_dbinfo.runid > -1 && _access_database){
-    Message(DEBUG)<<"Loading runinfo from database.\n";
-    bool sync = _dbinfo.SyncWithDatabase();
-    if(!sync)
-      Message(WARNING)<<"Unable to load runinfo from database.\n";
-  }
+  if(_runinfo.runid == -1)
+    _runinfo.runid = run_id;
 
-  //try to load calibration from the db also 
-  if(!_dbinfo.channels.empty() && _access_database){
-    Message(DEBUG)<<"Loading calibration factors from database.\n";
-    int good_cal = _dbinfo.LoadCalibrationInfo();
-    if(_fail_on_bad_cal && good_cal < (int)_dbinfo.channels.size()){
-      Message(ERROR)<<"Unable to load calibration data for all channels\n";
-      return -1;
-    }    
-  }
-  */  
-  
   //this info is in the raw file, so reset it:
   _runinfo.ResetRunStats();
   
