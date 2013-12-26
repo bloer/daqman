@@ -206,18 +206,28 @@ public:
 private:
   static int _returnval;
   RunInfoFillHelper(stringmap* metadata, FieldList* fields);
-  virtual ~RunInfoFillHelper() {}
+  virtual ~RunInfoFillHelper();
 public:
   ///Steal the unused Activate function to handle button events
   virtual Bool_t ProcessMessage(Long_t b, Long_t, Long_t); 
 private:
   stringmap* _metadata;
   FieldList* _fields;
+  TGCanvas* can; // won't auto cleanup, so must do on our own
+  TGCompositeFrame* mf2; //container of TGCanvas, need to delete manually
 };
+
+RunInfoFillHelper::~RunInfoFillHelper()
+{
+}
 
 int RunInfoFillHelper::_returnval=1; //default value for window closed
 int RunInfoFillHelper::MetadataDialog(stringmap* metadata, FieldList* fields)
 {
+  if(!gApplication)
+    new TApplication("_app",0,0);
+  gApplication->NeedGraphicsLibs();
+  gApplication->InitializeGraphics();
   new RunInfoFillHelper(metadata, fields);
   return _returnval;
 }
@@ -303,17 +313,13 @@ RunInfoFillHelper::RunInfoFillHelper(stringmap* metadata, FieldList* fields) :
     
   //make sure we clean up properly at the end
   SetCleanup(kDeepCleanup);
+  can->GetViewPort()->SetCleanup(kDeepCleanup);
   //draw the window
   MapSubwindows();
   Resize(500,500);
   CenterOnParent();
   MapWindow();
-  if(!gApplication->IsRunning()){
-    Connect("Destroyed()","TApplication",gApplication,"Terminate(Int_t)");
-    gApplication->Run(1);
-  }
-  else
-    gClient->WaitFor(this);
+  gClient->WaitFor(this);
 }
 
 

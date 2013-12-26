@@ -11,7 +11,7 @@
 #include "ParameterList.hh"
 #endif 
 
-#include "Rtypes.h"
+
 #include <vector>
 #include <map>
 #include <string>
@@ -67,10 +67,10 @@ public:
   /**@class DialogField
      @brief utility class to handle querying user for metadata
    */
-#ifdef __CINT__
-  class DialogField{
-#else
+#ifndef __CINT__
   class DialogField : public ParameterList{
+#else
+    class DialogField{
 #endif
   public:
     DialogField(const std::string& field_="", const std::string& desc = "",
@@ -125,8 +125,7 @@ public:
 
   
 private:
-  //make visible to ROOT
-  ClassDef(runinfo,1)
+
 }; 
 
 

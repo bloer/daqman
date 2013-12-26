@@ -12,6 +12,7 @@
 #include "TRootEmbeddedCanvas.h"
 #include "TStyle.h"
 #include "TROOT.h"
+#include "TApplication.h"
 #include "TColor.h"
 
 #include "utilities.hh"
@@ -32,11 +33,13 @@ void* RunRootGraphix(void* mutexptr)
 
 RootGraphix::RootGraphix() : 
   BaseModule("RootGraphix","Draw graphical canvases using the ROOT GUI"), 
-  _app("app",0,0), _mutex(), _thread(RunRootGraphix), _mainframe(0)
+  _mutex(), _thread(RunRootGraphix), _mainframe(0)
 {
+  if(!gApplication)
+    new TApplication("_app",0,0);
   _mutex.SetBit(fKeepRunning,true);
   LoadStyle();
-  //_app.ProcessFile(".rootstart.C");
+  
   RegisterParameter("single_window",_single_window = false,
 		    "Use a single window to contain all canvases");
   RegisterParameter("window_w",_window_w = 700,
