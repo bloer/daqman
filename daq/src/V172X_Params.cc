@@ -62,6 +62,8 @@ V172X_BoardParams::V172X_BoardParams() :
 		    "Board optical link number");
   RegisterParameter("usb", usb = false,
 		    "Connect through USB instead of optical link?");
+  RegisterParameter("chainindex", chainindex=0, 
+		    "Order of board on a fiber daisy chain connection");
   RegisterParameter("id", id = -1, "Software id of the board");
   RegisterParameter("board_type", board_type = OTHER,
 		    "Specific model of digitizer (V1720, V1724, V1721)");

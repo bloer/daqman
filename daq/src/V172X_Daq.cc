@@ -75,8 +75,8 @@ V172X_Daq::~V172X_Daq()
     if(_params.board[i].enabled && _params.board[i].link > 0 && _params.board[i].link != _params.vme_bridge_link) CAENVME_End(_handle_board[i]);
 }
 
-int init_link (int link, bool usb, int32_t *handle) {
-  CVErrorCodes err = CAENVME_Init(usb ? cvV1718 : cvV2718 , link, 0, handle);
+int init_link (int link, int board, bool usb, int32_t *handle) {
+  CVErrorCodes err = CAENVME_Init(usb ? cvV1718 : cvV2718, link, board, handle);
   if(err != cvSuccess){
     Message m(ERROR);
     m<<"Unable to initialize CAEN VME bridge for link " << link;
@@ -109,7 +109,7 @@ int V172X_Daq::Initialize()
   }
       
   if (_params.vme_bridge_link >= 0) {
-    if (init_link (_params.vme_bridge_link, false, &_handle_vme_bridge) < 0) {
+    if (init_link (_params.vme_bridge_link, 0, false, &_handle_vme_bridge) < 0){
       _status=INIT_FAILURE;
       return -1;
     }
@@ -138,8 +138,8 @@ int V172X_Daq::Initialize()
        ( ( _params.board[i].link >= 0 && 
 	 _params.board[i].link != _params.vme_bridge_link )
 	 || _params.board[i].usb ) ){
-      if (init_link (_params.board[i].link, _params.board[i].usb, 
-		     _handle_board + i) < 0) {
+      if (init_link (_params.board[i].link, _params.board[i].chainindex, 
+		     _params.board[i].usb, _handle_board + i) < 0) {
 	_status=INIT_FAILURE;
 	return -3;
       }

@@ -104,6 +104,7 @@ public:
   uint32_t address;                    ///< this board's VME address
   int link;			       ///< the caenvmelib link number for this board or the vme bridge
   bool usb;                            ///< connect through usb instead of optical link? 
+  int chainindex;                      ///< Order of the board on a daisy chain fiber
   BOARD_TYPE board_type;               ///< type of V172X digitizer
   double v_full_scale;                 ///< full scale range of input
   int stupid_size_factor;              ///< determines packing of samples in mem
