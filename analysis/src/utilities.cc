@@ -1,5 +1,4 @@
 #include "utilities.hh"
-#include "RunDB.hh"
 #include "EventData.hh"
 
 #include "TFile.h"
@@ -172,39 +171,6 @@ std::vector<std::string> explode_cut(const TCut& cut)
     prev = pos+2;
   }
   return out;
-}
-
-void SetAliases(TTree* Events)
-{
-  //first read in one event and figure out what the run number is
-  EventData* ev = 0;
-  Events->SetBranchAddress("EventData",&ev);
-  Events->GetEntry(0);
-  RunDB::runinfo run_info;  //<does nothing!!! 
-  //loop over all the defined channels and alias their spectra
-  std::set<RunDB::runinfo::channelinfo>::iterator it=run_info.channels.begin();
-  int i=0;
-  for( ;  it != run_info.channels.end(); ++i){
-    if(it->channel < 0) continue;
-    //user 2 filters for top pmts, 3 filters for bottom
-    int filters = 2;
-    if(it->channel == 7) filters=3;
-    double spe = GetSPEScaleFactor(run_info.runid, it->channel,filters);
-    TString aliasname="npe";
-    aliasname += it->channel;
-    std::stringstream aliasdef;
-    aliasdef<<"(-channels["<<it->channel<<"].regions[1].integral/"
-	    <<spe<<")";
-    Events->SetAlias(aliasname, aliasdef.str().c_str());
-    ++i;
-  }
-  //add some global definitions
-  Events->SetAlias("topspec","npe0+npe1+npe2+npe3+npe4+npe5+npe6");
-  Events->SetAlias("botspec","npe7");
-  Events->SetAlias("sumspec","topspec+botspec");
-  Events->SetAlias("min","channels[].regions[1].min");
-  Events->SetAlias("max","channels[].regions[1].max");
-  Events->SetAlias("pmt","channels[].channel_id");
 }
 
 void DrawOperationsBoxes(bool drawbubble, bool drawrecirc)
@@ -566,7 +532,7 @@ TCanvas* PlotSpeDistributions(TTree* Events, bool normalize)
   Events->SetBranchAddress(EventData::GetBranchName(), &evt);
   Events->GetEntry(0);
   //try to load the calibration
-  //RunDB::runinfo info(evt->run_id);
+
   //info.LoadCalibrationInfo();
 
   //plot all the channel histograms

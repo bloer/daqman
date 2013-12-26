@@ -9,7 +9,7 @@
 
 #include "ParameterList.hh"
 #include "Event.hh"
-#include "RunDB.hh"
+#include "runinfo.hh"
 #include <string>
 #include <vector>
 
@@ -92,9 +92,7 @@ public:
   /// Get the ID number of this run
   int GetRunID(){ return run_id; }
   /// Get the database info about the run
-  RunDB::runinfo* GetRunInfo(){ return &_dbinfo; }
-  /// Get the database info about the campaign
-  RunDB::campaigninfo* GetCampaignInfo(){ return &_cpinfo; }
+  runinfo* GetRunInfo(){ return &_runinfo; }
   /// Set whether to load calibration info from database at initialize
   void AllowDatabaseAccess(bool setval){ _access_database=setval; }
   /// Check whether we are supposed to fail on bad calibration
@@ -106,8 +104,7 @@ private:
   EventPtr _current_event;
   bool _is_initialized;  ///< are the modules initialized?
   int run_id;
-  RunDB::runinfo _dbinfo; ///< info about the run from the database
-  RunDB::campaigninfo _cpinfo; ///< info about the campaign form the database  
+  runinfo _runinfo; ///< general metadata about the run
   bool _access_database; ///< do we query the database for missing info?
   bool _fail_on_bad_cal; ///< Fail to initialize if no calibration data found
   

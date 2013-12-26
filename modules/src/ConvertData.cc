@@ -3,7 +3,7 @@
 #include "V172X_Params.hh"
 #include "RootWriter.hh"
 #include "EventHandler.hh"
-#include "RunDB.hh"
+#include "runinfo.hh"
 #include "ConfigHandler.hh"
 #include <vector>
 
@@ -57,8 +57,6 @@ int ConvertData::Initialize()
   }
   
   _info = EventHandler::GetInstance()->GetRunInfo();
-  //Load campaign information
-  _cpinfo = EventHandler::GetInstance()->GetCampaignInfo();
   
   return 0;
 }
@@ -123,10 +121,12 @@ int ConvertData::Process(EventPtr event)
 	chdata.max_time = chdata.SampleToTime(max_samp - wave);
 	chdata.min_time = chdata.SampleToTime(min_samp - wave);
 	//find the single photoelectron peak for this channel
-	const RunDB::runinfo::channelinfo* chinfo = 
-	  _info->GetChannelInfo(chdata.channel_id);
+	
+	int chinfo=0;
+	//const RunDB::runinfo::channelinfo* chinfo = 
+	//_info->GetChannelInfo(chdata.channel_id);
 	if(chinfo)
-	  chdata.spe_mean = chinfo->spe_mean;
+	  chdata.spe_mean = 1;//chinfo->spe_mean;
 	else
 	  {
 	    chdata.spe_mean = 1;
@@ -140,7 +140,7 @@ int ConvertData::Process(EventPtr event)
 	  }
 
 	// get the PMT information for this channel
-	chdata.pmt.Load(_cpinfo->pmts[chdata.channel_id]);
+	//chdata.pmt.Load(_cpinfo->pmts[chdata.channel_id]);
       }
     data->nchans = data->channels.size();
   }// end skipped section if headers only
@@ -153,7 +153,8 @@ int ConvertData::Process(EventPtr event)
   _info->starttime = start_time;
   _info->endtime = data->timestamp;
   _info->events = data->event_id+1;
-  
+  _info->triggers = data->trigger_count+1;
+  /*
   if(_info->trigger_veto > 0){
     _info->livetime = 1.*data->event_time/ns_per_s - 
       _info->trigger_veto/1000. * (1.*_info->events);
@@ -162,14 +163,7 @@ int ConvertData::Process(EventPtr event)
   else if(data->trigger_count)
     _info->livetime = 1.*_info->events / data->trigger_count * 
       data->event_time / ns_per_s;
-  if(data->nchans > 0 && 
-     (_info->pre_trigger_time_us < 0 || _info->post_trigger_time_us < 0) ){
-    //WARNING: this assumes all channels have same acquisition times!!!!!
-    ChannelData& ch = data->channels[0];
-    _info->pre_trigger_time_us = -ch.SampleToTime(0);
-    _info->post_trigger_time_us = ch.SampleToTime(ch.nsamps);
-    ///@todo: should that be ch.nsamps-1?
-  }
+  */
   return 0;
 }
 

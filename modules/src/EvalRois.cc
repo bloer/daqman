@@ -42,7 +42,6 @@ int EvalRois::Process(ChannelData* chdata)
   
   Baseline& base = chdata->baseline;
   if(!base.found_baseline) return 0;
-  RunDB::runinfo* info = EventHandler::GetInstance()->GetRunInfo();
   for(size_t window = 0; window < _regions.size(); window++){
     chdata->regions.push_back(Roi());
     Roi& roi = chdata->regions.back();
@@ -73,12 +72,7 @@ int EvalRois::Process(ChannelData* chdata)
 				     subtractedwave+roi.end_index,
 				     0.);
     }
-    const RunDB::runinfo::channelinfo* chinfo = 
-      info->GetChannelInfo(chdata->channel_id);
-    if(chinfo)
-      roi.npe = -roi.integral / chinfo->spe_mean;
-    else 
-      roi.npe = -roi.integral;
+    roi.npe = -roi.integral / chdata->spe_mean;
   }
   
   return 0;

@@ -2,7 +2,6 @@
 #include "SumChannels.hh"
 #include "PulseFinder.hh"
 #include "Integrator.hh"
-#include "RunDB.hh"
 #include "RootWriter.hh"
 #include "EventHandler.hh"
 #include <string>
