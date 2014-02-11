@@ -47,6 +47,7 @@ enum VME_REGISTERS{
   VME_EventsStored =       0x812C,
   VME_BoardInfo =          0x8140,
   VME_EventSize =          0x814C,
+  VME_AlmostFull =         0x816C,
   VME_VMEControl =         0xEF00,
   VME_VMEStatus =          0xEF04,
   VME_BoardID =            0xEF08,
@@ -184,6 +185,12 @@ int V172X_Daq::InitializeBoard(int boardnum)
     _status = INIT_FAILURE;
     return -2;
   }
+  else{
+    Message(DEBUG)<<"Successfully initialized board "<<boardnum
+		  <<" with address "<<std::hex<<std::showbase<<board.address
+		  <<std::dec<<std::noshowbase<<" with "
+		  <<board.mem_size<<"MB/ch memory."<<std::endl;
+  }
   WriteVMERegister(board.address+VME_BoardID,
 		   board.id, _handle_board[boardnum]);
   WriteVMERegister(board.address+VME_InterruptID,
@@ -285,6 +292,33 @@ int V172X_Daq::Update()
       WriteVMERegister(board.address+ VME_CustomSize, 
 		       board.GetCustomSizeSetting(), _handle_board[iboard]);
       
+      //almost full register (affects busy relative to full signal)
+      //not sure if it's subtractive or absolute, so try 1 now
+      int nbuffers = board.GetTotalNBuffers();
+      int reserve = board.almostfull_reserve;
+      int almostfull = nbuffers - reserve;
+      
+      if(reserve == 0)
+	almostfull = 0;
+      else if(almostfull <= 0){
+	if(nbuffers == 1){
+	  Message(WARNING)<<"Requested almostfull_reserve "<<reserve
+			  <<"but only 1 buffer available! Disabling.\n";
+	  almostfull = 0;
+	}
+	else{
+	  Message(WARNING)<<"Requested almostfull_reserve "<<reserve
+			  <<" but only "<<nbuffers<<" total buffers!\n\t"
+			  <<"AlmostFull level will be set to 1.\n";
+	  almostfull = 1;
+	}
+      }
+      if(almostfull > 0){
+	Message(DEBUG)<<"BUSY will be asserted when "<<almostfull
+		      <<" buffers are filled.\n";
+      }
+      WriteVMERegister(board.address + VME_AlmostFull,
+		       almostfull, _handle_board[iboard]);
       //Acquisition Control
       uint32_t acq_control =  
 	(1<<3) * board.count_all_triggers +
@@ -308,8 +342,15 @@ int V172X_Daq::Update()
       WriteVMERegister(board.address+VME_PostTriggerSetting, 
 		       board.GetPostTriggerSetting(), _handle_board[iboard]);
       //signal logic and front panel programming
+      uint32_t trgoutmask = 0;
+      if(board.trgout_mode == BUSY)
+	trgoutmask = 0xD; //1101
+      uint32_t fpio = board.signal_logic //NIM or TTL
+	| (1<<6) //programmed IO
+	| (trgoutmask<<16); //trgoutsetting (bits 16-19)
+
       WriteVMERegister(board.address+ VME_FrontPanelIO,
-		       board.signal_logic + (1<<6), _handle_board[iboard]);
+		       fpio, _handle_board[iboard]);
       //channel mask
       WriteVMERegister(board.address+ VME_ChannelMask, channel_mask, 
 		       _handle_board[iboard]);

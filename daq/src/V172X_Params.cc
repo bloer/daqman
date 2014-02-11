@@ -102,6 +102,8 @@ V172X_BoardParams::V172X_BoardParams() :
 		    "Length of time after the trigger to store");
   RegisterParameter("downsample_factor", downsample_factor = 1,
 		    "No longer implemented in CAEN firmware; kept for compatibility only!");
+  RegisterParameter("almostfull_reserve",almostfull_reserve = 1,
+		    "Assert BUSY when free buffers <= n");
   RegisterParameter("trigger_polarity", trigger_polarity = TP_FALLING,
 		    "Determines whether to generate trigger when the signal is above or below the trigger threshold");
   RegisterParameter("count_all_triggers", count_all_triggers = true,
@@ -112,6 +114,8 @@ V172X_BoardParams::V172X_BoardParams() :
 		    "Do we generate partial triggers if two come in too close to each other?");
   RegisterParameter("signal_logic", signal_logic = NIM,
 		    "Type of logic (NIM or TTL) for external signals");
+  RegisterParameter("trgout_mode", trgout_mode = TRIGGER,
+		    "Which signal to provide on the front panel TRGOUT");
   RegisterParameter("enable_test_pattern", enable_test_pattern = false,
 		    "Generate a triangle wave on the channels instead of measure real signals?");
   //RegisterParameter("acq_control_val", 
@@ -222,6 +226,11 @@ uint32_t V172X_BoardParams::GetTotalNSamps() const
   while( total_nsamps % (4/bytes_per_sample)) total_nsamps++;
   //if(total_nsamps%2) total_nsamps++;
   return total_nsamps;
+}
+
+uint32_t V172X_BoardParams::GetTotalNBuffers() const
+{
+  return (1<<GetBufferCode());
 }
 
 uint32_t V172X_BoardParams::GetBufferCode() const
@@ -422,6 +431,38 @@ std::istream& operator>>(std::istream& in, BOARD_TYPE& type)
     type = OTHER;
     Message e(EXCEPTION);
     e<<temp<<" is not a valid value for BOARD_TYPE"<<std::endl;
+    throw std::invalid_argument(e.str());
+  }
+  return in;
+}
+
+
+std::ostream& operator<<(std::ostream& out, const TRGOUT_MODE& m)
+{
+  std::string word="";
+  switch(m){
+  case TRIGGER:
+    word = "TRIGGER";
+    break;
+  case BUSY:
+    word = "BUSY";
+    break;
+  }
+  //shouldn't get here
+  return out<<word;
+}
+
+std::istream& operator>>(std::istream& in, TRGOUT_MODE& m)
+{
+  std::string tmp;
+  in>>tmp;
+  if(tmp=="TRIGGER")
+    m = TRIGGER;
+  else if(tmp == "BUSY")
+    m = BUSY;
+  else{
+    Message e(EXCEPTION);
+    e<<tmp<<" is not a valid value for TRGOUT_MODE\n";
     throw std::invalid_argument(e.str());
   }
   return in;
