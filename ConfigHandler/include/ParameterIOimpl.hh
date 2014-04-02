@@ -13,6 +13,7 @@
 #include <map>
 #include <algorithm>
 #include "boost/type_traits.hpp"
+#include "boost/shared_ptr.hpp"
 
 #include "VParameterNode.hh"
 /** @namespace ParameterIOimpl
@@ -37,6 +38,27 @@ namespace ParameterIOimpl{
 					       int indent=0)
   { return writeleaf(out, t, showhelp, indent, 
 		     boost::is_base_of<VParameterNode,T>()); }
+  
+  //overload for pointers and shared pointers
+  
+  template<class T> inline std::istream& read(std::istream& in, T* t)
+  { return in >> *t; }
+  
+  template<class T> inline std::ostream& write(std::ostream& out, const T* t,
+					       bool showhelp=false, 
+					       int indent=0)
+  { return writeleaf(out, *t, showhelp, indent, 
+		     boost::is_base_of<VParameterNode,T>()); }
+  
+  template<class T> inline std::istream& read(std::istream& in, boost::shared_ptr<T>& t)
+  { return in >> *(t.get()); }
+  
+  template<class T> inline std::ostream& write(std::ostream& out, const boost::shared_ptr<T>& t,
+					       bool showhelp=false, 
+					       int indent=0)
+  { return writeleaf(out, *(t.get()), showhelp, indent, 
+		     boost::is_base_of<VParameterNode,T>()); }
+  
   
   
   //lowest level needs meta template to give indent to parameters
@@ -142,6 +164,16 @@ namespace ParameterIOimpl{
   const char opener[]="[{(";
   const char closer[]="]})";
 
+  //default construction for all classes
+  template<class T> struct Constructor {
+    static T make() { return T(); }
+  };
+  template<class T> struct Constructor<T*> {
+    static T* make() { return new T(); }
+  };
+  template<class T> struct Constructor<boost::shared_ptr<T> >{
+    static boost::shared_ptr<T> make() { return boost::shared_ptr<T>(new T());}
+  };
   
 };
 
@@ -279,6 +311,7 @@ inline std::ostream& ParameterIOimpl::writeit(std::ostream& out,
   return out<<closer[container];
 }
 
+
 template<class T, class C> inline 
 std::istream& ParameterIOimpl::readlist(std::istream& in,C& container)
 {
@@ -314,7 +347,7 @@ std::istream& ParameterIOimpl::readlist(std::istream& in,C& container)
       continue;
     }
     in.unget();
-    T t;
+    T t(Constructor<T>::make());
     if(!read(in,t))
       return in;
     insert(t, container);
