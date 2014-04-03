@@ -398,7 +398,7 @@ int Reader::OpenNextFile()
     //format is FILE.###.out, ### is file index
     string filename = _filename;
     size_t last_slash = filename.rfind('/');
-    if(last_slash == string::npos) last_slash = 0;
+
     string dirpart="", filepart=filename;
     if(last_slash == filename.size()-1){
       dirpart = filename;
