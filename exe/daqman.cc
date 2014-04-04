@@ -183,7 +183,7 @@ int main(int argc, char** argv)
 			    "Maximum number of events before we abort the run");
   config->RegisterParameter("stat-time",stattime,
 			    "Time between printing of event/data rates");
-  
+  config->RegisterReadFunction("require_comment",DeprecatedParameter<bool>());
   V172X_Daq daq;
     
   config->SetProgramUsageString("daqman [options]");

@@ -21,6 +21,18 @@ typedef runinfo::stringvec stringvec;
 typedef runinfo::DialogField DialogField;
 typedef runinfo::FieldList FieldList;
 
+//utility class to read now-obsolete comment parameter and put into metadata
+class CommentReader{
+  runinfo* _info;
+public:
+  CommentReader(runinfo* info) : _info(info) {}
+  std::istream& operator()(std::istream& in)
+  { phrase dummy; 
+    if(in>>dummy) _info->SetMetadata("comment",dummy); 
+    return in; 
+  }
+};
+
 runinfo::runinfo(long id) : 
   ParameterList("runinfo","metadata about daq runs")
 {
@@ -77,6 +89,9 @@ void runinfo::InitializeParameterList()
   
   RegisterParameter("channel_metadata", channel_metadata,
 		    "map of channel ID to per-channel metadata");
+  
+  RegisterReadFunction("comment",CommentReader(this),
+		       "Handle obsolete separate comment parameter (now in metadata)");
 }
 
 
