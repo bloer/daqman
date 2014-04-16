@@ -70,7 +70,7 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
   while ( in.get(next) ){
     //if it's ')', or '}' exit
     if( next == ')' || next == '}' )
-      return in;
+      break;
     //if it's space, \t, \n, or comma, or opening parneth. ignore it and move on
     if( next == ' ' || next == ',' || next == '\t' || next == '\n' 
 	|| next == '(' || next == '{' || next == '|' || next == ';')
@@ -126,7 +126,6 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
       throw std::invalid_argument("Unabled to read parameter list");
       return in;
     }
-    
     //bigkey may actually be a list of keys like key1,key2,key3
     std::vector<std::string> keylist;
     size_t searchstart=0;
@@ -222,12 +221,17 @@ std::ostream& ParameterList::WriteTo( std::ostream& out, bool showhelp,
   mapit = _parameters.begin();
   //Loop over all the parameters in the map and pass the stream to them
   while( !out.fail() && mapit != _parameters.end() ){
-    int node_type = mapit->second->GetNodeType();
-    if(showhelp) out<<newline<<"# "<<mapit->second->GetHelpText()<<newline;
-    if(node_type != FUNCTION)
-	out<<(mapit->first)<<" ";
-    mapit->second->WriteTo(out, showhelp, indent+1);
-    out<<newline;
+    if(mapit->second->haswrite){
+      int node_type = mapit->second->GetNodeType();
+      if(showhelp) out<<newline<<"# "<<mapit->second->GetHelpText()<<newline;
+      if(node_type == FUNCTION)
+	out<<"#";
+      out<<(mapit->first)<<" ";
+      if(node_type == FUNCTION)
+	out<<newline;
+      mapit->second->WriteTo(out, showhelp, indent+1);
+      out<<newline;
+    }
     ++mapit;
   }
   out<<(showhelp ? newline : "")<<")" << (showhelp ? " #end list" : "");

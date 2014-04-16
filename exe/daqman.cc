@@ -65,16 +65,16 @@ std::ostream& operator<<(std::ostream& out, const PrintStats& stats){
 
 //utility class to add real-time spectra
 class SpectrumAdder{
-  std::vector<SpectrumMaker>& _spectra;
+  std::vector<SpectrumMaker*>& _spectra;
 public:
-  SpectrumAdder(std::vector<SpectrumMaker>& v) : _spectra(v) {}
+  SpectrumAdder(std::vector<SpectrumMaker*>& v) : _spectra(v) {}
   std::istream& operator()(std::istream& in){
     //first parameter is the name of the spectrum module
     std::string name;
     in>>name;
-    _spectra.push_back(SpectrumMaker(name));
+    _spectra.push_back(new SpectrumMaker(name));
     //expect to read parameters immediately after name
-    in>>_spectra.back();
+    in>>*_spectra.back();
     return in;
   }
 };
@@ -127,7 +127,7 @@ int main(int argc, char** argv)
   async_threads.push_back(&thread2);
   
   //allow as many spectra as we want
-  std::vector<SpectrumMaker> spectra;
+  std::vector<SpectrumMaker*> spectra;
   modules->RegisterParameter("spectra",spectra, 
 			     "List of live analysis spectra to dispay");
   
@@ -183,7 +183,7 @@ int main(int argc, char** argv)
 			    "Maximum number of events before we abort the run");
   config->RegisterParameter("stat-time",stattime,
 			    "Time between printing of event/data rates");
-  
+  config->RegisterReadFunction("require_comment",DeprecatedParameter<bool>());
   V172X_Daq daq;
     
   config->SetProgramUsageString("daqman [options]");
@@ -197,12 +197,12 @@ int main(int argc, char** argv)
     config->PrintSwitches(true);
   }
   
+  AsyncEventHandler thread3;
   if(spectra.size() > 0){
     //for right now, put the spectra all on one thread
-    AsyncEventHandler thread3;
     thread1.AddReceiver(&thread3);
     for(size_t i=0; i<spectra.size(); ++i)
-      thread3.AddModule(&(spectra[i]), true, false);
+      thread3.AddModule((spectra[i]), true, false);
     async_threads.push_back(&thread3);
   }
   

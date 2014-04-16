@@ -59,7 +59,8 @@ namespace CommandSwitch{
       std::string filepath = ConfigHandler::GetInstance()->FindConfigFile(file);
       if(filepath=="")
 	return 1;
-      return !(l->ReadFromFile(filepath.c_str())); }
+      return l->ReadFromFile(filepath.c_str()); 
+    }
   };
   
   /** @class SetValue

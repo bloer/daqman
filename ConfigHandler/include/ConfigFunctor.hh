@@ -27,6 +27,9 @@
 
     @ingroup ConfigHandler
 */
+
+#include "ParameterIOimpl.hh"
+
 template <typename readfunc, typename writefunc>
 class ConfigFunctor : public VParameterNode{
 public:
@@ -55,5 +58,8 @@ struct ConfigFunctorDummyWrite{
   std::ostream& operator()(std::ostream& out) const{ return out; }
 };
 
+template<class T> struct DeprecatedParameter{
+  std::istream& operator()(std::istream& in){ T t; return ParameterIOimpl::read(in,t); }
+};
 
 #endif

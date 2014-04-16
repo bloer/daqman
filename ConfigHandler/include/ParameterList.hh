@@ -166,7 +166,10 @@ inline int ParameterList::RegisterReadFunction(const std::string& key,
 					       const R& reader,
 					       const std::string& helptext)
 {
-  return RegisterFunction(key, reader, ConfigFunctorDummyWrite(), helptext);
+  int r = RegisterFunction(key, reader, ConfigFunctorDummyWrite(), helptext); 
+  if(r==0)
+    _parameters[key]->haswrite = false;
+  return r;
 }
 
 template<class W>
@@ -174,7 +177,10 @@ inline int ParameterList::RegisterWriteFunction(const std::string& key,
 						const W& writer,
 						const std::string& helptext)
 {
-  return RegisterFunction(key, ConfigFunctorDummyRead(), writer, helptext);
+  int r = RegisterFunction(key, ConfigFunctorDummyRead(), writer, helptext);
+  if(r == 0)
+    _parameters[key]->hasread = false;
+  return r;
 }
 
 #endif

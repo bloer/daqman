@@ -46,8 +46,9 @@ EventHandler::EventHandler() :
   ConfigHandler* config = ConfigHandler::GetInstance();
   config->RegisterParameter(this->GetDefaultKey(),*this);
   config->RegisterParameter(_runinfo.GetDefaultKey(), _runinfo);
-  RegisterParameter("access_database", _access_database=false,
-		    "Do we query the database for run/calibration info?");
+  
+  RegisterReadFunction("access_database", DeprecatedParameter<bool>());
+  
   RegisterParameter("fail_on_bad_cal", _fail_on_bad_cal=false,
 		    "Fail to initialize if unable to  find calibration data");
   RegisterParameter("run_parallel", _run_parallel=false,
@@ -58,9 +59,9 @@ EventHandler::EventHandler() :
 			   EnableModule(false),"module");
   config->AddCommandSwitch(' ',"list-modules","list the available modules",
 			   ListModules);
-  config->AddCommandSwitch(' ',"no-db","Skip attempts to access database",
+  /*config->AddCommandSwitch(' ',"no-db","Skip attempts to access database",
 			   CommandSwitch::SetValue<bool>(_access_database,false)
-			   );
+			   ); */
   
 }
 //Copy, assignment constructors not provided
