@@ -70,7 +70,7 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
   while ( in.get(next) ){
     //if it's ')', or '}' exit
     if( next == ')' || next == '}' )
-      return in;
+      break;
     //if it's space, \t, \n, or comma, or opening parneth. ignore it and move on
     if( next == ' ' || next == ',' || next == '\t' || next == '\n' 
 	|| next == '(' || next == '{' || next == '|' || next == ';')
@@ -126,7 +126,6 @@ std::istream& ParameterList::ReadFrom(std::istream& in, bool single)
       throw std::invalid_argument("Unabled to read parameter list");
       return in;
     }
-    
     //bigkey may actually be a list of keys like key1,key2,key3
     std::vector<std::string> keylist;
     size_t searchstart=0;

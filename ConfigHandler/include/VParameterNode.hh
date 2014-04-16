@@ -30,7 +30,7 @@ public:
   
   /// Save this parameter to a file
   virtual bool SaveToFile(const char* fname, bool showhelp=false);
-  /// Read this parameter froma file by name <key>
+  /// Read this parameter froma file by name <key>, return true on error
   virtual bool ReadFromFile(const char* fname, const std::string& key="",
 			    bool suppress_errs=false);
   /// Read this parameter from an istream

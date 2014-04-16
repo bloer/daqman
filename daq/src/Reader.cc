@@ -442,17 +442,17 @@ int Reader::OpenNextFile()
 	//if we get here, the filename command ended in /, so try to extract it
 	if(!dirpart.empty() && dirpart[dirpart.size()-1]=='/'){
 	  last_slash = dirpart.rfind('/',dirpart.size()-2);
-	  if(last_slash != string::npos){
-	    filepart = dirpart.substr(last_slash+1,string::npos);
-	    filepart.resize(filepart.size()-1);
-	    std::stringstream fname;
-	    fname<<dirpart<<filepart<<"."
-		 <<std::setw(3)<<std::setfill('0')<<_current_file_index+1
-		 <<".out";
-	    _current_file_name = fname.str();
-	    Message(DEBUG2)<<"Testing filename "<<_current_file_name<<" ...\n";
-	    _fin = gzopen(_current_file_name.c_str(),"rb");
-	  }
+	  if(last_slash == string::npos)
+	    last_slash = -1;
+	  filepart = dirpart.substr(last_slash+1,string::npos);
+	  filepart.resize(filepart.size()-1);
+	  std::stringstream fname;
+	  fname<<dirpart<<filepart<<"."
+	       <<std::setw(3)<<std::setfill('0')<<_current_file_index+1
+	       <<".out";
+	  _current_file_name = fname.str();
+	  Message(DEBUG2)<<"Testing filename "<<_current_file_name<<" ...\n";
+	  _fin = gzopen(_current_file_name.c_str(),"rb");
 	}
       }//end check on dirpart empty
     }//end trying a directory

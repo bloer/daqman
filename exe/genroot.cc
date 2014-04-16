@@ -51,6 +51,8 @@ int ProcessOneFile(const char* filename, std::string event_file, int max_event=-
 	       <<"\n***************************************\n";
   EventHandler* modules = EventHandler::GetInstance();
   Reader reader(filename);
+  if(!reader.IsOk())
+    return 2;
   if(modules->Initialize()){
     Message(ERROR)<<"Unable to initialize all modules.\n";
     return 1;
