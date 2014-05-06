@@ -14,6 +14,8 @@ ConvertData::ConvertData():
 {
   RegisterParameter("offset_channels", _offsets, 
 		    "map of channelid:offset time to apply for analysis");
+  RegisterParameter("invert_data",_invert_data = false,
+		    "Multiply the converted data by -1?");
   _v172X_params = 0;
   _headers_only = false;
 }
@@ -166,6 +168,8 @@ int ConvertData::Process(EventPtr event)
   */
   return 0;
 }
+
+static double invert(double a){ return -a; }
 
 int ConvertData::DecodeV172XData(const unsigned char* rawdata, 
 				  uint32_t datasize, 
@@ -323,6 +327,9 @@ int ConvertData::DecodeV172XData(const unsigned char* rawdata,
 		     wave[chdata.unsuppressed_regions.back().second-1] );
 	}
       }// end check for zero suppressed data
+      if(_invert_data)
+	std::transform(chdata.waveform.begin(),chdata.waveform.end(),
+		       chdata.waveform.begin(), invert);
       chdata.nsamps = chdata.waveform.size();
     }
   }

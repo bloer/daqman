@@ -47,6 +47,7 @@ private:
   runinfo* _info;                ///< database information for this run
   long _id_mismatches;           ///< Number of events with ID mismatch
   bool _headers_only;            ///< Only process data headers, not the bulk
+  bool _invert_data;            ///< Invert the converted data?
 public:
 
 };
