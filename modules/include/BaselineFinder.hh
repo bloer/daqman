@@ -48,20 +48,24 @@ public:
   //parameters
   bool fixed_baseline;         // use fixed baseline algorithm
   bool linear_interpolation;  // use few baseline estimates and interpolate
-	
+  
+  ParameterList fixed_params;
   int segment_samps;
   int min_valid_samps;
   double max_sigma;
   double max_sigma_diff;
   double max_mean_diff;
-	
+
+  ParameterList interp_params;
   int avg_samps;
   double max_sigma_factor;
   double pulse_threshold;
   int cooldown;
   int pre_cooldown;
 
+  ParameterList drifting_params;
   double max_amplitude;   ///< max amplitude for sample to be part of baseline
+  double max_return_amplitude; ///< max amplitude for resuming baseline following after an excluded region
   double max_sum_amplitude; ///< max_amplitude for sum channel
   double signal_begin_time;  ///< position to start searching for baseline
   int pre_samps;           ///< samples before point to average
