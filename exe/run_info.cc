@@ -8,13 +8,13 @@
 #include "ConvertData.hh"
 #include "ConfigHandler.hh"
 #include "CommandSwitchFunctions.hh"
-#include "RunDB.hh"
 #include "phrase.hh"
 #include <iostream>
 #include <ctime>
 #include <cstdio>
 #include <cstdlib>
 #include "Message.hh"
+#include "runinfo.hh"
 
 using namespace std;
 
@@ -31,7 +31,7 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
     return;
   
  
-  RunDB::runinfo* info = modules->GetRunInfo();
+  runinfo* info = modules->GetRunInfo();
   if( ConfigHandler::GetInstance()->LoadParameterList(info) ){
     //couldn't find it in saved config, so see if there's a default file
     if(runinfo_file != ""){
@@ -40,10 +40,10 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
     }
   }
     
-  if(comment != "") info->comment = comment;  
+  if(comment != "") info->SetMetadata("comment",comment);
   if(force_regen || info->runid <=0 || 
      info->starttime == 0 || info->endtime == 0 ||
-     info->events == 0 || info->livetime == 0){
+     info->events == 0 ){
     //process the first event
     //don't read from the database
     modules->AllowDatabaseAccess(false);
@@ -61,7 +61,7 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
     }
     
     //Finalize erases the info, so copy it
-    info = new RunDB::runinfo(*info);
+    info = new runinfo(*info);
     modules->Finalize();
   }
   //print the results
@@ -97,12 +97,14 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
     }
   case 'Y':
   case 'y':
-    if(info->comment == ""){
+    if(info->GetMetadata("comment") == ""){
       cout<<"Please enter a comment for this run:"<<endl;
       cin.ignore(100,'\n');
-      getline(cin, info->comment);
+      std::string c;
+      getline(cin, c);
+      info->SetMetadata("comment",c);
     }
-    info->InsertIntoDatabase();
+    //info->InsertIntoDatabase();
     break;
   default:
     cerr<<"Something weird happened..."<<endl;

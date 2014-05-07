@@ -34,6 +34,7 @@ THREADOBJS  := $(THREADCODE:%.cc=%.o)
 #find all headers, even in subdirectories
 HEADERS     := $(shell find . -name '*.h') $(shell find . -name '*.hh') 
 HEADERS     := $(filter-out ./libdaqman/include/%,$(HEADERS))
+HEADERS     := $(filter-out ./doc/%,$(HEADERS))
 
 #find all include directories, add them to the include path
 INCLUDEDIRS := $(shell find $(PWD) -name 'include' -type d | \
@@ -141,7 +142,7 @@ COMMON_OBJS := $(filter-out %$(DICTO),$(COMMON_OBJS))
 COMMON_OBJS += $(DICT:.cc=.o)
 #and header with the phrase ClassDef in it will get added here
 DICTHEADS   := $(shell grep -l ClassDef $(HEADERS))
-DICTHEADS   += LinkDef.h
+#DICTHEADS   += LinkDef.h
 DICTOBJS    := $(subst include,src,$(DICTHEADS))
 DICTOBJS    := $(DICTO) $(DICTOBJS:.hh=.o)
 DICTOBJS    := $(filter $(DICTOBJS),$(OBJS))
@@ -167,9 +168,20 @@ lib/libDict.so: $(DICTOBJS)
 	@echo "  [LD]  $@"
 	@$(CXX) $(LDFLAGS) $(LIBFLAGS) $(LIBS) $^ -o $@ > /dev/null
 
-$(DICT): $(DICTHEADS)
+LinkDef.h: $(DICTHEADS)
+	@echo "  Generating $@"
+	@echo "#ifdef __CINT__" >$@
+	@echo "#pragma link off all globals;" >>$@
+	@echo "#pragma link off all classes;" >>$@
+	@echo "#pragma link off all functions;" >>$@
+	@echo "#pragma link C++ nestedclasses;" >>$@
+	@echo "#pragma link C++ global functions;" >>$@
+	@$(foreach d,$^,echo "#pragma link C++ defined_in \"$(d)\";" >>$@;)
+	@echo "#endif /*__CINT__*/" >>$@
+
+$(DICT): $(DICTHEADS) LinkDef.h
 	@echo "  [ROOTCINT] $@"
-	@rootcint -v -f $@ -c $(INCLUDES) $^ 
+	@rootcint -f $@ -c $(CXXFLAGS) -p $^ 
 
 $(BIN): bin/%: exe/%.o lib/libdaqman.so  
 	@echo "  [LD]  $@" 
@@ -199,6 +211,7 @@ distclean: clean
 	rm -rf libdaqman
 	rm -f $(BIN)
 	rm -rf lib bin
+	rm -f LinkDef.h
 	rm -f $(DICT:%.cc=%.*)
 	rm -f .deps .deps.bak
 	rm -rf doc/html doc/latex

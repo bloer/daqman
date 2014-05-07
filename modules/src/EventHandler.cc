@@ -45,9 +45,10 @@ EventHandler::EventHandler() :
 {
   ConfigHandler* config = ConfigHandler::GetInstance();
   config->RegisterParameter(this->GetDefaultKey(),*this);
-  config->RegisterParameter(_dbinfo.GetDefaultKey(), _dbinfo);
-  RegisterParameter("access_database", _access_database=false,
-		    "Do we query the database for run/calibration info?");
+  config->RegisterParameter(_runinfo.GetDefaultKey(), _runinfo);
+  
+  RegisterReadFunction("access_database", DeprecatedParameter<bool>());
+  
   RegisterParameter("fail_on_bad_cal", _fail_on_bad_cal=false,
 		    "Fail to initialize if unable to  find calibration data");
   RegisterParameter("run_parallel", _run_parallel=false,
@@ -58,9 +59,9 @@ EventHandler::EventHandler() :
 			   EnableModule(false),"module");
   config->AddCommandSwitch(' ',"list-modules","list the available modules",
 			   ListModules);
-  config->AddCommandSwitch(' ',"no-db","Skip attempts to access database",
+  /*config->AddCommandSwitch(' ',"no-db","Skip attempts to access database",
 			   CommandSwitch::SetValue<bool>(_access_database,false)
-			   );
+			   ); */
   
 }
 //Copy, assignment constructors not provided
@@ -115,45 +116,18 @@ int EventHandler::Initialize()
   _is_initialized = true;
   
   //initialize the runinfo
-  //try to load the info from a saved cfg file, only if not in this file
-  if(_dbinfo.channels.empty()){
-    Message(DEBUG)<<"Searching for runinfo in saved cfg file.\n";
-    ConfigHandler::GetInstance()->LoadParameterList(&_dbinfo);
+  //how to allow overriding runinfo settings?
+  try{
+    ConfigHandler::GetInstance()->LoadParameterList(&_runinfo);
   }
-  //if we couldn't load the runid from the saved file, see if it was set already
-  if(_dbinfo.runid == -1){
-    _dbinfo.runid = run_id;
+  catch(std::exception& e){
+    Message(WARNING)<<"Saved runinfo will not be used in this processing!\n";
   }
-  //the database info is the best source
-  if(_dbinfo.runid > -1 && _access_database){
-    Message(DEBUG)<<"Loading runinfo from database.\n";
-    bool sync = _dbinfo.SyncWithDatabase();
-    if(!sync)
-      Message(WARNING)<<"Unable to load runinfo from database.\n";
-  }
-  //try to load calibration from the db also 
-  if(!_dbinfo.channels.empty() && _access_database){
-    Message(DEBUG)<<"Loading calibration factors from database.\n";
-    int good_cal = _dbinfo.LoadCalibrationInfo();
-    if(_fail_on_bad_cal && good_cal < (int)_dbinfo.channels.size()){
-      Message(ERROR)<<"Unable to load calibration data for all channels\n";
-      return -1;
-    }    
-  }
-  
-  //try to load campaign info from the database 
-  if(_access_database && _dbinfo.starttime.t>0){
-    Message(DEBUG)<<"EventHandler::Initialize(): "
-		  <<"Loading campaign info from database.\n";
-    int good_pmts = _cpinfo.LoadCampaignInfo(_dbinfo.starttime.t);
-    if (good_pmts < (int)_dbinfo.channels.size())
-      Message(WARNING)<<"EventHandler::Initialize(): "
-		      <<"Unable to load campaign info from database.\n";
-  }
-  
-  
+  if(_runinfo.runid == -1)
+    _runinfo.runid = run_id;
+
   //this info is in the raw file, so reset it:
-  _dbinfo.ResetRunStats();
+  _runinfo.ResetRunStats();
   
   //first initialize all enabled modules
   std::set<std::string> enabled_modules;
@@ -277,7 +251,7 @@ int EventHandler::Finalize()
     }
   }
   //reset the run info
-  _dbinfo.Init(true);
+  _runinfo.Init(true);
   Message(DEBUG)<<"Done finalizing modules.\n";
   if(final_fail)
     Message(WARNING)<<"Finalization returned error code "<<final_fail<<"\n";

@@ -8,7 +8,6 @@
 #include "ConfigHandler.hh"
 #include "CommandSwitchFunctions.hh"
 #include "utilities.hh"
-#include "RunDB.hh"
 #include "RootGraphix.hh"
 #include "ChanFitSettings.hh"
 #include <sstream>
@@ -108,6 +107,7 @@ void DrawSpectra(map<int, FitTH1F*>* spectra, TCanvas* c)
   c->Update();
 }
 
+/*
 void UpdateDatabase(map<int,FitTH1F*>* spectra, TTree* Events, ChanFitSettings ChannelSettings[])
 {
   const string table="laserruns";
@@ -171,6 +171,7 @@ it != spectra->end(); it++){
   std::cout<<rows<<" entries were successfully inserted into the database."
 	   <<std::endl;
 }
+*/
 
 void RefitChannel(FitTH1F* h, int entries, TCanvas* c, ChanFitSettings& CFS)
 {
@@ -281,7 +282,7 @@ void QueryUser(map<int, FitTH1F*>* spectra, TTree* Events, RootGraphix* root, Ch
       break;
     }
     if(response == "w"){
-      UpdateDatabase(spectra, Events, ChannelSettings);
+      //UpdateDatabase(spectra, Events, ChannelSettings);
       break;
     }
     bool remove = false;

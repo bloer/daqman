@@ -37,7 +37,8 @@ namespace ProcessingCuts{
 
   /// Overload ostream operator to stream variable_t
   inline
-  std::ostream& operator<<(std::ostream& out, CheckRegion::variable_t& var){
+  std::ostream& operator<<(std::ostream& out, 
+			   const CheckRegion::variable_t& var){
     if(var == CheckRegion::MIN)
       return out<<"min";
     else if(var == CheckRegion::MAX)

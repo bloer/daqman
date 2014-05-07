@@ -88,15 +88,23 @@ int RootWriter::Initialize()
 
 void RootWriter::SaveConfig()
 {
+  ConfigHandler* cfghandler = ConfigHandler::GetInstance();
   //save the configuration to the tree as a TMacro
   TMacro cfg;
   std::stringstream cfgstream;
-  cfgstream << *(ConfigHandler::GetInstance());
+  cfgstream << *cfghandler; 
   cfgstream.seekg(std::ios::beg);
   std::string line;
   while( std::getline(cfgstream, line) ) 
     cfg.AddLine(line.c_str());
   cfg.Write("Configuration");
+  //also save the daq configuration
+  if(cfghandler->GetSavedCfgFile() != ""){
+    TMacro daqcfg(cfghandler->GetSavedCfgFile().c_str());
+    if(daqcfg.GetListOfLines()->GetEntries())
+      daqcfg.Write("DAQConfiguration");
+  }
+    
 }
 
 int RootWriter::Process(EventPtr event)

@@ -62,6 +62,8 @@ V172X_BoardParams::V172X_BoardParams() :
 		    "Board optical link number");
   RegisterParameter("usb", usb = false,
 		    "Connect through USB instead of optical link?");
+  RegisterParameter("chainindex", chainindex=0, 
+		    "Order of board on a fiber daisy chain connection");
   RegisterParameter("id", id = -1, "Software id of the board");
   RegisterParameter("board_type", board_type = OTHER,
 		    "Specific model of digitizer (V1720, V1724, V1721)");
@@ -308,7 +310,7 @@ int V172X_Params::GetEventSize()
   return event_size_bytes;
 }
 
-std::ostream& operator<<(std::ostream& out, SIGNAL_LOGIC logic)
+std::ostream& operator<<(std::ostream& out, const SIGNAL_LOGIC& logic)
 {
   if(logic==NIM) 
     return out<<"NIM";
@@ -316,7 +318,7 @@ std::ostream& operator<<(std::ostream& out, SIGNAL_LOGIC logic)
     return out<<"TTL";
 }
 
-std::ostream& operator<<(std::ostream& out, ZERO_SUPPRESSION_TYPE zs)
+std::ostream& operator<<(std::ostream& out, const ZERO_SUPPRESSION_TYPE& zs)
 {
   if(zs == NONE) 
     return out<<"NONE";
@@ -328,7 +330,7 @@ std::ostream& operator<<(std::ostream& out, ZERO_SUPPRESSION_TYPE zs)
     return out<<"ZS_AMP";
 }
 
-std::ostream& operator<<(std::ostream& out, TRIGGER_POLARITY pol)
+std::ostream& operator<<(std::ostream& out, const TRIGGER_POLARITY& pol)
 {
   if(pol == TP_RISING)
     return out<<"TP_RISING";
@@ -336,7 +338,7 @@ std::ostream& operator<<(std::ostream& out, TRIGGER_POLARITY pol)
     return out<<"TP_FALLING";
 }
 
-std::ostream& operator<<(std::ostream& out, BOARD_TYPE type)
+std::ostream& operator<<(std::ostream& out, const BOARD_TYPE& type)
 {
   if(type == V1724)
     return out<<"V1724";

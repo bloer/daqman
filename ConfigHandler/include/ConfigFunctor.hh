@@ -27,6 +27,9 @@
 
     @ingroup ConfigHandler
 */
+
+#include "ParameterIOimpl.hh"
+
 template <typename readfunc, typename writefunc>
 class ConfigFunctor : public VParameterNode{
 public:
@@ -36,8 +39,11 @@ public:
   ~ConfigFunctor(){}
   
   std::istream& ReadFrom(std::istream& in, bool dummy=0){ return reader(in);}
-  std::ostream& WriteTo(std::ostream& out, bool dummy1=0, int dummy=0)
+  std::ostream& WriteTo(std::ostream& out, bool dummy1=0, int dummy=0) const
   { return writer(out);}
+  
+  ConfigFunctor<readfunc, writefunc>* Clone(const void* from, void* to) const
+  { return new ConfigFunctor<readfunc, writefunc>(*this); }
 private:
   readfunc reader;
   writefunc writer;
@@ -49,8 +55,11 @@ struct ConfigFunctorDummyRead{
 };
 /// Null-op utility class for ConfigFunctors that don't need write functionality
 struct ConfigFunctorDummyWrite{
-  std::ostream& operator()(std::ostream& out){ return out; }
+  std::ostream& operator()(std::ostream& out) const{ return out; }
 };
 
+template<class T> struct DeprecatedParameter{
+  std::istream& operator()(std::istream& in){ T t; return ParameterIOimpl::read(in,t); }
+};
 
 #endif

@@ -26,12 +26,13 @@ void AsyncEventHandler::Reset()
 }
 
 int AsyncEventHandler::AddModule(BaseModule* mod,
-				 bool register_to_eventhandler)
+				 bool register_to_eventhandler,
+				 bool register_parameters)
 {
   if(mod){
     _modules.push_back(mod);
     if(register_to_eventhandler) {
-      EventHandler::GetInstance()->AddModule(mod, false);
+      EventHandler::GetInstance()->AddModule(mod, false, register_parameters);
     }
   }
   return 0;
@@ -71,8 +72,9 @@ int AsyncEventHandler::StartRunning()
   //if we have no enabled modules, don't run
   int enabled_modules = 0;
   for(size_t i=0; i<_modules.size(); ++i){
-    if(_modules[i]->enabled)
+    if(_modules[i]->enabled){
       ++enabled_modules;
+    }
   }
   if(enabled_modules == 0){
     Message(DEBUG)<<"AsyncEventHandler not running: no enabled modules.\n";
@@ -84,7 +86,7 @@ int AsyncEventHandler::StartRunning()
   _threadptr = _tp(new boost::thread(boost::ref(*this)));
   Message(DEBUG)<<"AsyncEventHandler running on thread "<<_threadptr->get_id()
 		<<" with sleeptime "<<_sleeptime<<" ms "
-		<<" contains "<<_modules.size()<<" modules.\n";
+		<<" contains "<<enabled_modules<<" enabled modules.\n";
   return 0;
 #else
   Message(WARNING)<<"Attempt to use AsyncEventHandler with multithreading disabled!\n";

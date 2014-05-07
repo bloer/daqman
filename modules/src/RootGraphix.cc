@@ -1,4 +1,5 @@
 #include "RootGraphix.hh"
+#include "EventHandler.hh"
 #include "TSystem.h"
 #include "TCanvas.h"
 #include "ConfigHandler.hh"
@@ -11,6 +12,7 @@
 #include "TRootEmbeddedCanvas.h"
 #include "TStyle.h"
 #include "TROOT.h"
+#include "TApplication.h"
 #include "TColor.h"
 
 #include "utilities.hh"
@@ -31,11 +33,13 @@ void* RunRootGraphix(void* mutexptr)
 
 RootGraphix::RootGraphix() : 
   BaseModule("RootGraphix","Draw graphical canvases using the ROOT GUI"), 
-  _app("app",0,0), _mutex(), _thread(RunRootGraphix), _mainframe(0)
+  _mutex(), _thread(RunRootGraphix), _mainframe(0)
 {
+  if(!gApplication)
+    new TApplication("_app",0,0);
   _mutex.SetBit(fKeepRunning,true);
   LoadStyle();
-  //_app.ProcessFile(".rootstart.C");
+  
   RegisterParameter("single_window",_single_window = false,
 		    "Use a single window to contain all canvases");
   RegisterParameter("window_w",_window_w = 700,
@@ -78,11 +82,17 @@ int RootGraphix::Finalize()
   return 0;
 }
 
-int RootGraphix::Process(EventPtr )
+int RootGraphix::Process(EventPtr evt)
 {
   for(size_t i=0; i < _canvases.size(); i++){
     Lock glock = AcquireLock();
     _canvases[i]->Update();
+  }
+  if(_mainframe){
+    Lock glock = AcquireLock();
+    int seconds = evt->GetRawEvent()->GetTimestamp() - 
+      EventHandler::GetInstance()->GetRunInfo()->starttime;
+    _mainframe->SetWindowName(Form("daqman: %d events acquired, %d:%02d:%02d run time", evt->GetRawEvent()->GetID(), seconds/3600,(seconds/60)%60, seconds%60));
   }
   return 0;
 }

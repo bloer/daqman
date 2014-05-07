@@ -18,17 +18,19 @@
     
     @ingroup ConfigHandler    
 */
+
 class VParameterNode{
 public:
   /// Default Constructor
   VParameterNode(const std::string key="", const std::string helptext="") : 
-    _default_key(key), _node_type(VIRTUAL) , _helptext(helptext){}
+    _default_key(key), _node_type(VIRTUAL) , _helptext(helptext),
+    hasread(true), haswrite(true) {}
   /// Destructor
   virtual ~VParameterNode() {}
   
   /// Save this parameter to a file
   virtual bool SaveToFile(const char* fname, bool showhelp=false);
-  /// Read this parameter froma file by name <key>
+  /// Read this parameter froma file by name <key>, return true on error
   virtual bool ReadFromFile(const char* fname, const std::string& key="",
 			    bool suppress_errs=false);
   /// Read this parameter from an istream
@@ -39,7 +41,7 @@ public:
 				       bool suppress_errs=false);
   /// Write this parameter to an ostream
   virtual std::ostream& WriteTo( std::ostream& out , bool showhelp=false, 
-				 int indent=0)=0;
+				 int indent=0) const =0;
   /// Get the default name of this parameter
   const std::string& GetDefaultKey() const { return _default_key; }
   /// Set the default name of this parameter
@@ -53,6 +55,9 @@ public:
   const std::string& GetHelpText(){ return _helptext; }
   /// Set the associated help text
   void SetHelpText(const std::string& newtext){ _helptext = newtext; }
+  
+  ///Clone the object onto a new parameter list
+  virtual VParameterNode* Clone(const void* from, void* to) const =0;
 
 protected:
   /** @enum NODE_TYPES
@@ -62,6 +67,9 @@ protected:
   std::string _default_key;  ///< Default name of this parameter
   int _node_type; ///< what NODE_TYPE is this parameter?
   std::string _helptext; ///< A short description of this parameter
+public:
+  bool hasread; ///< Does the underlying object have an istream overload?
+  bool haswrite; ///< Does the underlying object have ostream overload?
 };
 
 //inline the redirect overloads
@@ -72,7 +80,7 @@ inline std::istream& operator>>(std::istream& in, VParameterNode& p)
 }
 
 /// Overload ostream operator for VParameterNode
-inline std::ostream& operator<<(std::ostream& out, VParameterNode& p)
+inline std::ostream& operator<<(std::ostream& out, const VParameterNode& p)
 {
   return p.WriteTo(out);
 }

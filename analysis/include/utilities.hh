@@ -41,21 +41,6 @@ double GetBaseline(TGraph* g, int npts=100, bool subtract = false);
 /// Decide how to divde a pad based on the number of plots
 int DividePad(TPad* p, int nplots);
 
-/** @function SetAliases
-    @brief Set some useful aliases for drawing spectra from the 'Events' tree.
-    
-    Uses the database interface to find the appropriate laser calibration run
-    to scale the main region of interest for each channel. 
-    Creates the following aliases:
-    - npe# : number of photoelectrons for channel #
-    - topspec : number of photoelectrons detected by all top pmts
-    - botspec : number of photoelectrons detected by all bottom pmts
-    - min : the minimum value of the waveform in regions[1]
-    - max : the maximum value of the waveform in regions[1]
-    - pmt : channel_id + 1, just to confuse things =)
-*/
-void SetAliases(TTree* Events);
-
 /// Break a string at char delim into subtstrings in the out vector
 int explode_string(const std::string& s, char delim, 
 		   std::vector<std::string>& out);

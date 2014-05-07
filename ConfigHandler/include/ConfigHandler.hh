@@ -118,7 +118,7 @@ private:
   std::string _program_usage;      ///< String detailing how to use program
   std::string _program_description; ///< String describing the program
 
-  phrase _notes;                      ///< specify comments in a config file
+  std::string _notes;                ///< specify comments in a config file
   std::string _default_cfg_file;    ///< default config file for this program
   std::string _saved_cfg;             ///< name of old config file
 

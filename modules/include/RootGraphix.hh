@@ -11,7 +11,6 @@
 #include "TMutex.h"
 #include "TVirtualMutex.h"
 #include "TThread.h"
-#include "TApplication.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -47,7 +46,6 @@ public:
 private:
   void LoadStyle();
 
-  TApplication _app;
   TMutex _mutex;
   TThread _thread;
   std::vector<TCanvas*> _canvases;

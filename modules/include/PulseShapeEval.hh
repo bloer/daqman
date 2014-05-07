@@ -13,6 +13,7 @@
     @brief PulseShapeEval processes ...
     @ingroup modules
 */
+class TH1F;
 class PulseShapeEval : public BaseModule
 {
 public:

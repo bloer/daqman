@@ -45,20 +45,25 @@ public:
     VParameterNode(key, helptext) { _node_type = PARAMETER_LIST; }
   /// Desctructor
   virtual ~ParameterList();
+  ///Clone to new ParameterList
+  virtual ParameterList* Clone(const void* from, void* to) const
+  {return (ParameterList*)((char*)to + ((const char*)this-(const char*)from));}
 protected:
   /// Copy constructor can only be used by derived classes
   ParameterList(const ParameterList& right);
   /// Operator= can only be used by derived classes
   ParameterList& operator=(const ParameterList& right);
+  /// Util to copy the guts of a parameter list by relative reference
+  void CopyPlistRelative(const ParameterList& right);
 public:
   /// Initialize the parameter list, needed to preserve copy functionality
-  virtual void InitializeParameterList(){}
+  virtual void InitializeParameterList() { std::cerr<<"InitializeParameterList\n";}
 
   /// Read the whole list from an istream
   virtual std::istream& ReadFrom( std::istream& in, bool single=false);
   /// Write the whole list to an ostream
   virtual std::ostream& WriteTo( std::ostream& out , bool showhelp=false, 
-				 int indent=0);
+				 int indent=0) const;
   /// Print description, travel through sub-tree
   virtual int PrintHelp(const std::string& myname="") const;
   /// Register a new subparameter
@@ -161,7 +166,10 @@ inline int ParameterList::RegisterReadFunction(const std::string& key,
 					       const R& reader,
 					       const std::string& helptext)
 {
-  return RegisterFunction(key, reader, ConfigFunctorDummyWrite(), helptext);
+  int r = RegisterFunction(key, reader, ConfigFunctorDummyWrite(), helptext); 
+  if(r==0)
+    _parameters[key]->haswrite = false;
+  return r;
 }
 
 template<class W>
@@ -169,8 +177,10 @@ inline int ParameterList::RegisterWriteFunction(const std::string& key,
 						const W& writer,
 						const std::string& helptext)
 {
-  return RegisterFunction(key, ConfigFunctorDummyRead(), writer, helptext);
+  int r = RegisterFunction(key, ConfigFunctorDummyRead(), writer, helptext);
+  if(r == 0)
+    _parameters[key]->hasread = false;
+  return r;
 }
-
 
 #endif

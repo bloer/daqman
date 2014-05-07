@@ -27,7 +27,11 @@ bool VParameterNode::ReadFromFile(const char *fname, const std::string& key,
       Message(ERROR)<<"Unable to open file "<<fname<<" for reading."<<std::endl;
     return false;
   }
-  bool fail = ReadFromByKey(fin, key,suppress_errs).fail();
+  ReadFromByKey(fin,key,suppress_errs);
+  //eof seems to trip the failbit, so don't test directly
+  //note that this test will allow an empty file to pass without problems!
+  //similarly an incomplete  non-list Parameter
+  bool fail = !(fin.good() || fin.eof());
   fin.close();
   return fail;
 }
