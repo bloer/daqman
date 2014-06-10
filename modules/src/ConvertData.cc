@@ -14,8 +14,8 @@ ConvertData::ConvertData():
 {
   RegisterParameter("offset_channels", _offsets, 
 		    "map of channelid:offset time to apply for analysis");
-  RegisterParameter("invert_data",_invert_data = false,
-		    "Multiply the converted data by -1?");
+  RegisterParameter("invert_channels",_invert_channels ,
+		    "Multiply the converted data by -1 for a channel?");
   _v172X_params = 0;
   _headers_only = false;
 }
@@ -73,6 +73,18 @@ int ConvertData::Finalize()
   return 0;
 }
 
+class InvertData{
+private:
+  double _max, _min;
+public:
+  InvertData(double max, double min=0) : _max(max), _min(min) {}
+  double operator()(double a){ return _max - (a-_min); }
+};
+
+static double invert(double a){ return -a; }
+
+
+
 const uint64_t ns_per_s = 1000000000;
 int ConvertData::Process(EventPtr event)
 {
@@ -112,6 +124,10 @@ int ConvertData::Process(EventPtr event)
       {
 	ChannelData& chdata = data->channels[ch];
 	double* wave = chdata.GetWaveform();
+	if(_invert_channels.count(chdata.channel_id) )
+	  std::transform(wave, wave+chdata.nsamps, wave,
+			 InvertData(chdata.GetVerticalRange()) );
+	
 	double* max_samp = std::max_element(wave, wave+chdata.nsamps);
 	double* min_samp = std::min_element(wave, wave+chdata.nsamps);
 	//data is saturated if it hit 0 or maximum range
@@ -169,7 +185,6 @@ int ConvertData::Process(EventPtr event)
   return 0;
 }
 
-static double invert(double a){ return -a; }
 
 int ConvertData::DecodeV172XData(const unsigned char* rawdata, 
 				  uint32_t datasize, 
@@ -327,9 +342,7 @@ int ConvertData::DecodeV172XData(const unsigned char* rawdata,
 		     wave[chdata.unsuppressed_regions.back().second-1] );
 	}
       }// end check for zero suppressed data
-      if(_invert_data)
-	std::transform(chdata.waveform.begin(),chdata.waveform.end(),
-		       chdata.waveform.begin(), invert);
+      
       chdata.nsamps = chdata.waveform.size();
     }
   }
