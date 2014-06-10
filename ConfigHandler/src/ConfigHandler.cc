@@ -65,6 +65,8 @@ ConfigHandler::ConfigHandler() :
 		   PrintAnnotatedConfig );
   
   RegisterParameter("notes",_notes, "Generic notes about this run, etc");
+  RegisterParameter("collapse_disabled_lists",_collapse_disabled,
+		    "Do not print child info for disabled ParameterLists");
   //RegisterParameter("saved-config",_saved_cfg,
   //"Previously saved configuration file");
   

@@ -113,7 +113,11 @@ public:
   
   //search multiple paths for a config file
   std::string FindConfigFile(const std::string& fname);
- 
+
+  ///Should we hide all children of disabled lists when printing? 
+  void CollapseDisabledLists(bool collapse) { _collapse_disabled = collapse; }
+  
+  
 private:
   std::string _program_usage;      ///< String detailing how to use program
   std::string _program_description; ///< String describing the program
@@ -132,6 +136,7 @@ private:
   /// Copy constructor private
   ConfigHandler(const ConfigHandler& right) : ParameterList(),
 					      _switches(right._switches) {}
+  
   /// Copy constructor private
   ConfigHandler& operator=(const ConfigHandler& right)
   { _switches = right._switches; return *this; }
