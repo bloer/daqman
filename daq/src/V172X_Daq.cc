@@ -59,6 +59,28 @@ enum VME_REGISTERS{
   VME_SWClear =            0xEF28,
 };
 
+
+void PrintAllRegisters(int handle)
+{
+  static const uint32_t registers[] = { 
+    0x8000, 0x800C, 0x8020, 0x8100, 0x8104, 0x810C, 0x8110, 0x8114, 0x811C, 
+    0x8120, 0x8124, 0x812C, 0x8140, 0x814C, 0xEF00, 0xEF04, 0xEF14, 0xEF18, 
+    0xEF1C, 0xEF20, 0xEF2C, 0xEF30,
+    0xF000, 0xF004, 0xF008, 0xF00C, 0xF010, 0xF014, 0xF018, 0xF01C, 0xF020,
+    0xF024, 0xF028, 0xF02C, 0xF030, 0xF034, 0xF038, 0xF03C, 0xF040, 0xF044,
+    0xF048, 0xF04C, 0xF080, 0xF084, 0xF088 };
+  const int nregisters = sizeof(registers) / sizeof(uint32_t);
+  uint32_t data = 0;
+  printf("Register map:\n");
+  int i=0;
+  for( ; i<nregisters; ++i){
+    CAENVME_ReadCycle(handle, registers[i], &data, cvA32_U_DATA, cvD32);
+    printf("0x%04X:   %08X\n",registers[i], data);
+  }
+}
+
+
+
 V172X_Daq::V172X_Daq() : BaseDaq(), _initialized(false), 
 			 _params(), _triggers(0), _vme_mutex()
 {
@@ -346,7 +368,7 @@ int V172X_Daq::Update()
       if(board.trgout_mode == BUSY)
 	trgoutmask = 0xD; //1101
       uint32_t fpio = board.signal_logic //NIM or TTL
-	| (1<<6) //programmed IO
+	/*| (1<<6) //programmed IO*/
 	| (trgoutmask<<16); //trgoutsetting (bits 16-19)
 
       WriteVMERegister(board.address+ VME_FrontPanelIO,
@@ -358,7 +380,7 @@ int V172X_Daq::Update()
       uint32_t vme_control = (1<<5) * _params.align64 + 
 	(1<<4) + //enable bus error
 	(1<<3) + //enable optical link error
-	1; //interrupt level
+	( board.usb ? 0 : 1 ); //interrupt level
       WriteVMERegister(board.address+ VME_VMEControl, vme_control, _handle_board[iboard]);
       //Interrupt num, BLT event num
       WriteVMERegister(board.address+VME_InterruptOnEvent, 0, _handle_board[iboard]);
@@ -368,6 +390,8 @@ int V172X_Daq::Update()
       int count = 0;
       while( !((status&0x100) && (status&0xc0)) ){
 	status = ReadVMERegister(board.address+VME_AcquisitionStatus, _handle_board[iboard]);
+	Message(DEBUG2)<<"Board "<<board.id<<" reporting status "
+		       <<std::hex<<status<<"\n";
 	if(count++ > 500){
 	  Message(ERROR)<<"Unable to initialize board "<<iboard<<" at address "
 			<<std::hex<<board.address<<std::dec<<"\n";
