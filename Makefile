@@ -170,14 +170,7 @@ lib/libDict.so: $(DICTOBJS)
 
 LinkDef.h: $(DICTHEADS)
 	@echo "  Generating $@"
-	@echo "#ifdef __CINT__" >$@
-	@echo "#pragma link off all globals;" >>$@
-	@echo "#pragma link off all classes;" >>$@
-	@echo "#pragma link off all functions;" >>$@
-	@echo "#pragma link C++ nestedclasses;" >>$@
-	@echo "#pragma link C++ global functions;" >>$@
-	@$(foreach d,$^,echo "#pragma link C++ defined_in \"$(d)\";" >>$@;)
-	@echo "#endif /*__CINT__*/" >>$@
+	$(shell ./scripts/generateLinkDef.sh >$@)
 
 $(DICT): $(DICTHEADS) LinkDef.h
 	@echo "  [ROOTCINT] $@"
