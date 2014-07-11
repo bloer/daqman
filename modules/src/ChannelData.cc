@@ -222,13 +222,15 @@ void ChannelData::Draw(bool baseline_subtracted, int downsample,
       pbox->SetBit(TObject::kCanDelete,true);
       pbox->SetLineColor(kGreen);
       pbox->Draw();
-      if(draw_integral){
-      TLine* iline = new TLine( x[region.min_index], base,//////iline
-				x[region.min_index], base+region.integral*integral_scale);
-      iline->SetBit(TObject::kCanDelete,true);
-      iline->SetLineColor(kBlue);
-      iline->SetLineWidth(4);
-      iline->Draw();
+      if(0 && draw_integral){
+	TLine* iline = new TLine( x[region.min_index], 
+				  base,//////iline
+				  x[region.min_index], 
+				  base+region.integral*integral_scale);
+	iline->SetBit(TObject::kCanDelete,true);
+	iline->SetLineColor(kBlue);
+	iline->SetLineWidth(4);
+	iline->Draw();
       }
       TLine* pline = new TLine( x[region.min_index], base,
 				x[region.min_index], peaky);
