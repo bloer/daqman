@@ -229,10 +229,10 @@ int ProcessedPlotter::Process(EventPtr event)
     }
     for(int pad=0; pad<total_pads; pad++){
       pulsepad->cd( (total_pads == 1 ? 0 : pad+1 ) );
-      int chans_this_pad = std::min(cpp, nchans-pad*cpp);
+      int chans_this_pad = std::min(cpp, (int)chans_to_draw.size()-pad*cpp);
 	
       if( overlay_analysis && chans_this_pad == 1 ){
-	chans_to_draw[pad]->Draw(subtract_baseline, downsample,
+	chans_to_draw[pad*cpp]->Draw(subtract_baseline, downsample,
 				 autoscalex, autoscaley, 
 				 xmin, xmax, ymin, ymax);
       }
