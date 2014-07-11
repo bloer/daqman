@@ -177,8 +177,8 @@ lib/libDict.so: $(DICTOBJS)
 	@$(CXX) $(LDFLAGS) $(LIBFLAGS) $(LIBS) $^ -o $@ > /dev/null
 
 LinkDef.h: $(DICTHEADS)
-	@echo "  Generating $@"
-	$(shell ./scripts/generateLinkDef.sh >$@)
+	@echo "  Generating $@..."
+	@./scripts/generateLinkDef.sh >$@
 
 $(DICT): $(DICTHEADS) LinkDef.h
 	@echo "  [ROOTCINT] $@"
