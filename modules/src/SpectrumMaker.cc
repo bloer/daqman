@@ -17,10 +17,12 @@
 #include "TClass.h"
 #include "TList.h"
 #include "TClassMenuItem.h"
+#include "TTreeFormulaManager.h"
 
 SpectrumMaker::SpectrumMaker(const std::string& name) : 
   BaseModule(name, "Histogram variables from data") ,
-  _histo(0), _canvas(0), _tree(0), _branch(0), _xform(0), _yform(0), _cutform(0)
+  _histo(0), _canvas(0), _tree(0), _branch(0) 
+  //, _xform(0), _yform(0), _cutform(0)
 {
   RegisterParameter("xvar", _xvar = "", "Variable to plot on x axis");
   RegisterParameter("nbinsx",_nbinsx = 200, "Number of bins in the x axis");
@@ -89,24 +91,30 @@ int SpectrumMaker::Initialize()
   }
   
   _tree = new TTree((GetName()+"tree").c_str(),"");
+  _tree->SetCircular(1);
+  _tree->SetDirectory(0);
   EventData* ptr = new EventData;
   _branch = _tree->Branch(EventData::GetBranchName(),&ptr);
-  _tree->SetEntries(1);
-  delete ptr;
+  //_branch->SetEntries(1);
+  _tree->Fill();
   
+  
+  /*
   _xform = new TTreeFormula((GetName()+"xform").c_str(),_xvar.c_str(),_tree);
-  _xform->SetQuickLoad(true);
+  //_xform->SetQuickLoad(true);
   if(!_yvar.empty()){
     _yform = new TTreeFormula((GetName()+"yform").c_str(),_yvar.c_str(),_tree);
-    _yform->SetQuickLoad(true);
+    //_yform->SetQuickLoad(true);
   }
   
   if(!_cut.empty()){
     _cutform = new TTreeFormula((GetName()+"cutform").c_str(),_cut.c_str(),
 				_tree);
-    _cutform->SetQuickLoad(true);
+    //_cutform->SetQuickLoad(true);
   }
-  
+  */
+  _branch->SetAddress(0);
+  delete ptr;
        
   
   _draw_cmd = _yvar;
@@ -130,12 +138,14 @@ int SpectrumMaker::Finalize()
   delete _tree;
   _tree = 0;
   _branch = 0;
+  /*
   delete _xform;
   _xform = 0;
   delete _yform;
   _yform = 0;
   delete _cutform;
   _cutform = 0;
+  */
   return 0;
 }
 
@@ -144,7 +154,11 @@ int SpectrumMaker::Process(EventPtr evt)
   EventDataPtr data = evt->GetEventData();
   EventData* ptr = data.get();
   _branch->SetAddress( &ptr );
-  //_tree->Draw(_draw_cmd.c_str(), _cut.c_str(),"goff");
+  
+  _tree->Fill();
+  
+  _tree->Draw(_draw_cmd.c_str(), _cut.c_str(),"goff");
+  /*
   for(int i=0; i<_xform->GetNdata(); ++i){
     if(_cutform){
       if(_cutform->GetNdata() <= i)
@@ -162,9 +176,10 @@ int SpectrumMaker::Process(EventPtr evt)
     else
       _histo->Fill(xval);
   }
-  
+  */
   
   if(_canvas)
     _canvas->Modified();
+  _branch->SetAddress(0);
   return 0;
 }

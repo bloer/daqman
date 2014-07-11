@@ -13,9 +13,17 @@ ifeq ("$(MAKEDEPEND)","")
 $(error 'makedepend' is required for this Makefile to work properly)
 endif
 
+#find the root version
+ROOTVERSION = $(shell root-config --version)
+ROOTVERSION := $(dir $(ROOTVERSION))
+
 #find all the cc files, regardless of subdirectory except test.cc,  WarpCrateIO
 CODE        := $(shell find . -name '*.cc' | grep -v 'ConfigHandler/test.cc' | \
 		grep -v 'WarpCrateIO' | sort)
+ifneq ("$(ROOTVERSION)","5.34/")
+CODE := $(filter-out ./modules/src/TTreeFormula.cc,$(CODE))
+endif
+
 #all .cc files in exe/ will make executables
 MAIN_CODE   := $(shell find ./exe -name '*.cc' | sort)
 #all main code links against all others
@@ -209,6 +217,6 @@ distclean: clean
 	rm -f .deps .deps.bak
 	rm -rf doc/html doc/latex
 
-.PHONY: clean distclean deps doc
+.PHONY: clean distclean deps doc checkrootversion
 
 # DO NOT DELETE

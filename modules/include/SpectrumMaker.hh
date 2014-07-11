@@ -27,9 +27,9 @@ private:
   TCanvas* _canvas;       ///< Canvas on which the histogram is drawn
   TTree* _tree;           ///< Dummy tree used to parse variables
   TBranch* _branch;
-  TTreeFormula* _xform;
-  TTreeFormula* _yform;
-  TTreeFormula* _cutform;
+  //TTreeFormula* _xform;
+  //TTreeFormula* _yform;
+  //TTreeFormula* _cutform;
   std::string _draw_cmd;   ///<actual draw command passed to tree
 
   phrase _cut;            ///< cut determines whether to draw
