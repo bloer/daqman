@@ -15,12 +15,12 @@ endif
 
 #find the root version
 ROOTVERSION = $(shell root-config --version)
-ROOTVERSION := $(dir $(ROOTVERSION))
+#ROOTVERSION := $(dir $(ROOTVERSION))
 
 #find all the cc files, regardless of subdirectory except test.cc,  WarpCrateIO
 CODE        := $(shell find . -name '*.cc' | grep -v 'ConfigHandler/test.cc' | \
 		grep -v 'WarpCrateIO' | sort)
-ifneq ("$(ROOTVERSION)","5.34/")
+ifneq ("$(ROOTVERSION)","5.34/19")
 CODE := $(filter-out ./modules/src/TTreeFormula.cc,$(CODE))
 endif
 

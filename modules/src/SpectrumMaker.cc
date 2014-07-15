@@ -18,10 +18,11 @@
 #include "TList.h"
 #include "TClassMenuItem.h"
 #include "TTreeFormulaManager.h"
+#include "TTreePlayer.h"
 
 SpectrumMaker::SpectrumMaker(const std::string& name) : 
   BaseModule(name, "Histogram variables from data") ,
-  _histo(0), _canvas(0), _tree(0), _branch(0) 
+  _histo(0), _canvas(0), _tree(0), _branch(0) , _graphix(0)
   //, _xform(0), _yform(0), _cutform(0)
 {
   RegisterParameter("xvar", _xvar = "", "Variable to plot on x axis");
@@ -40,6 +41,7 @@ SpectrumMaker::SpectrumMaker(const std::string& name) :
   RegisterParameter("ytitle", _ytitle="", "Title of the yaxis");
   RegisterParameter("logx", _logx = false, "Plot on logarythmic x axis?");
   RegisterParameter("logy", _logy = false, "Plot on logarythmic y axis?");
+  RegisterParameter("logz", _logz = false, "Plot on log z axis?");
   
 }
 
@@ -59,7 +61,7 @@ int SpectrumMaker::Initialize()
     return 1;
   }
   
-  RootGraphix* graphix = EventHandler::GetInstance()->GetModule<RootGraphix>();
+  _graphix = EventHandler::GetInstance()->GetModule<RootGraphix>();
   
   if(_yvar == ""){
     _histo = new TH1D(GetName().c_str(), _title.c_str(),
@@ -72,6 +74,7 @@ int SpectrumMaker::Initialize()
 		      _nbinsy, _ymin, _ymax);
   _histo->SetXTitle(_xtitle.c_str());
   _histo->SetYTitle(_ytitle.c_str());
+  _histo->ResetBit(TH1::kCanRebin);
   
   //add Reset to the histogram's popup title
   if(std::string(_histo->Class()->GetMenuList()->First()->GetTitle()) != 
@@ -82,22 +85,23 @@ int SpectrumMaker::Initialize()
 				    "Reset","Reset",0,"",-1,1));
   }
 			         
-  if(graphix && graphix->enabled){
-    _canvas = graphix->GetCanvas(GetName().c_str());
+  if(_graphix && _graphix->enabled){
+    _canvas = _graphix->GetCanvas(GetName().c_str());
     _canvas->SetLogy(_logy);
     _canvas->SetLogx(_logx);
+    _canvas->SetLogz(_logz);
+    
     _canvas->cd();
     _histo->Draw( _yvar.empty() ? "" : "colz");
   }
   
   _tree = new TTree((GetName()+"tree").c_str(),"");
-  _tree->SetCircular(1);
-  _tree->SetDirectory(0);
+  
+  
   EventData* ptr = new EventData;
   _branch = _tree->Branch(EventData::GetBranchName(),&ptr);
-  //_branch->SetEntries(1);
-  _tree->Fill();
-  
+  _tree->SetDirectory(0);
+  _tree->SetCircular(1);
   
   /*
   _xform = new TTreeFormula((GetName()+"xform").c_str(),_xvar.c_str(),_tree);
@@ -113,7 +117,7 @@ int SpectrumMaker::Initialize()
     //_cutform->SetQuickLoad(true);
   }
   */
-  _branch->SetAddress(0);
+  _branch->ResetAddress();
   delete ptr;
        
   
@@ -151,13 +155,16 @@ int SpectrumMaker::Finalize()
 
 int SpectrumMaker::Process(EventPtr evt)
 {
+  RootGraphix::Lock glock = _graphix->AcquireLock();
   EventDataPtr data = evt->GetEventData();
   EventData* ptr = data.get();
   _branch->SetAddress( &ptr );
-  
   _tree->Fill();
-  
-  _tree->Draw(_draw_cmd.c_str(), _cut.c_str(),"goff");
+  _branch->ResetAddress();
+  _tree->Draw(_draw_cmd.c_str(), _cut.c_str(),"goff",1,0);
+  TTreePlayer* player = (TTreePlayer*)(_tree->GetPlayer());
+  TSelectorDraw* s = (TSelectorDraw*)(player->GetSelector());
+  //std::cerr<<s->GetOption()<<" "<<s->GetAction()<<" "<<s->GetCleanElist()<<" "<<s->GetDimension()<<" "<<s->GetMultiplicity()<<" "<<s->GetNfill()<<" "<<s->GetSelectedRows()<<" "<<std::endl;
   /*
   for(int i=0; i<_xform->GetNdata(); ++i){
     if(_cutform){

@@ -10,6 +10,7 @@ class TCanvas;
 class TTree;
 class TBranch;
 class TTreeFormula;
+class RootGraphix; 
 
 class SpectrumMaker : public BaseModule{
 public:
@@ -47,6 +48,9 @@ private:
   phrase _ytitle;         ///< Title of y axis
   bool _logy;             ///< Should we use logararithmic y axis?  
   bool _logx;             ///< Should we use logarithmic x axis?
+  bool _logz;             ///< Should we use logarithmic z axis?
+
+  RootGraphix* _graphix;   ///< RootGraphix pointer
 };
   
 
