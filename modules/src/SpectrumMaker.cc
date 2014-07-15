@@ -162,8 +162,6 @@ int SpectrumMaker::Process(EventPtr evt)
   _tree->Fill();
   _branch->ResetAddress();
   _tree->Draw(_draw_cmd.c_str(), _cut.c_str(),"goff",1,0);
-  TTreePlayer* player = (TTreePlayer*)(_tree->GetPlayer());
-  TSelectorDraw* s = (TSelectorDraw*)(player->GetSelector());
   //std::cerr<<s->GetOption()<<" "<<s->GetAction()<<" "<<s->GetCleanElist()<<" "<<s->GetDimension()<<" "<<s->GetMultiplicity()<<" "<<s->GetNfill()<<" "<<s->GetSelectedRows()<<" "<<std::endl;
   /*
   for(int i=0; i<_xform->GetNdata(); ++i){

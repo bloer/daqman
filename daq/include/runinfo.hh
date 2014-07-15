@@ -120,9 +120,9 @@ public:
   int FillDataForRun(FILLTIME when=RUNSTART);
 
   ///Get metadata
-  std::string GetMetadata(const std::string& key)
+  std::string GetMetadata(const std::string& key, const std::string& def="")
   { stringmap::iterator it = metadata.find(key);
-    return it == metadata.end() ? std::string("") : it->second ; }
+    return it == metadata.end() ? def : it->second ; }
   ///Explicitly set metadata
   void SetMetadata(const std::string& key, const std::string& val)
   { metadata[key] = val; }
