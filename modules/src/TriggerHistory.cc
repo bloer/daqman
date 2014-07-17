@@ -11,6 +11,7 @@
 #include "TAxis.h"
 #include "TList.h"
 #include "TROOT.h"
+#include "TStyle.h"
 
 TriggerHistory::TriggerHistory(const std::string& name) : 
   BaseModule(name), _graphix(0), 
@@ -37,6 +38,7 @@ TriggerHistory::~TriggerHistory()
 
 int TriggerHistory::Initialize()
 {
+  gStyle->SetTimeOffset(0);
   if(_update_interval<0) _update_interval = 0;
   _last_update_time = 0;
   _last_triggerid = 0;
@@ -120,9 +122,9 @@ int TriggerHistory::Process(EventPtr evt)
 			       _draw_errors_y ? sqrt(nevts)/(2*terr):0.);
     //trick to make multigraph recalculate range
     TH1* hist = _multigraph->GetHistogram();
-    if(hist)
+    if(hist){
       hist->SetMinimum(hist->GetMaximum());
-    
+    }
     _multigraph->Draw(_connect_points ? "ale" : "ae");
     
     
@@ -139,15 +141,15 @@ int TriggerHistory::Process(EventPtr evt)
     _legend->Draw();
     
     //on older root, have to update before setting time stuff
-    if(gROOT->GetVersionInt()<53200)
-      _canvas->Update();
+    _canvas->Update();
+    _multigraph->GetXaxis()->SetTimeFormat("%H:%M:%S%F1970-01-01 00:00:00");
     _multigraph->GetXaxis()->SetTimeDisplay(1);
-    _multigraph->GetXaxis()->SetTimeFormat("%H:%M:%S");
+    _multigraph->GetXaxis()->SetLabelSize(0.03);
+    _multigraph->GetXaxis()->SetNdivisions(505,false);
     _multigraph->GetYaxis()->SetTitle("Rate [Hz]");
     _canvas->Modified();
     
         
-    
   }
   return 0;
 }
