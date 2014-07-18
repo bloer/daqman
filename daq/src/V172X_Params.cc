@@ -194,6 +194,14 @@ int V172X_BoardParams::UpdateBoardSpecificVariables()
     stupid_size_factor = 7;
     ns_per_clocktick = 4;
     break;
+  case V1730:
+    max_sample_rate = 500;
+    sample_bits = 14;
+    bytes_per_sample = 2;
+    v_full_scale = 2;
+    stupid_size_factor = 5;
+    ns_per_clocktick = 8;
+    break;
   default:
     return -1;
     
@@ -238,6 +246,8 @@ uint32_t V172X_BoardParams::GetBufferCode() const
   int max_samples = mem_size*Mbyte / bytes_per_sample;
   if(board_type == V1751)
     max_samples = (int)(Mbyte * (mem_size == 0x02 ? 1.835 : 14.4 ));
+  else if(board_type == V1730)
+    max_samples = ( mem_size == 1 ? 640*1024 : (int)(5.12*Mbyte));
   uint32_t buffer_code = (uint32_t)floor(log2(max_samples / GetTotalNSamps()));
   if(buffer_code > 0xA)
     buffer_code = 0xA;

@@ -231,7 +231,13 @@ int main(int argc, char** argv)
       return 1;
     }
   }
-  
+  if(!reader){
+    Message(INFO)<<"Initializing DAQ...\n";
+    if(daq.Initialize() != 0){
+      Message(CRITICAL)<<"Initialization error! Aborting...\n";
+      return -1;
+    }
+  }
   //set the terminal into unbuffered mode
   keyboard board;
   //initialize all modules
@@ -246,16 +252,8 @@ int main(int argc, char** argv)
   try
     {
       if(!reader){
-	Message(INFO)<<"Initializing DAQ...\n";
-	if(daq.Initialize() == 0){
-	  Message(INFO)<<"Starting Run...\n";
-	  daq.StartRun();
-	}
-	else{
-	  Message(CRITICAL)<<"Initialization Error!"<<std::endl;
-	  modules->Finalize();
-	  return -1;
-	}
+	Message(INFO)<<"Starting Run...\n";
+	daq.StartRun();
       }
       //start the thread which takes commands
       time_t start_time = time(0);
