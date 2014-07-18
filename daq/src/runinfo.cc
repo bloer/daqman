@@ -34,7 +34,8 @@ public:
 };
 
 runinfo::runinfo(long id) : 
-  ParameterList("runinfo","metadata about daq runs")
+  ParameterList("runinfo","metadata about daq runs"),
+  TObject()
 {
   Init();
   runid = id;

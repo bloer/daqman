@@ -8,6 +8,7 @@
 
 //hide this from ROOT
 #include "Rtypes.h"
+#include "TObject.h"
 #ifndef __CINT__
 #include "ParameterList.hh"
 #endif 
@@ -27,9 +28,9 @@ class TMacro;
 */
 
 #ifndef __CINT__
-class runinfo : public ParameterList{
+class runinfo : public ParameterList, public TObject{
 #else
-class runinfo{
+class runinfo : public TObject{
 #endif
 public:
   /// default constructor does nothing
@@ -123,6 +124,11 @@ public:
   std::string GetMetadata(const std::string& key, const std::string& def="")
   { stringmap::iterator it = metadata.find(key);
     return it == metadata.end() ? def : it->second ; }
+
+  ///Get metadata as a double for drawing purposes
+  double GetValueMetadata(const std::string& key, double def = 0.)
+  {  std::string s = GetMetadata(key,""); 
+    return s == "" ? def : atof(s.c_str()); }
   ///Explicitly set metadata
   void SetMetadata(const std::string& key, const std::string& val)
   { metadata[key] = val; }
@@ -133,10 +139,11 @@ public:
     s<<val;
     metadata[key] = s.str();
   }
-
+  
+  stringmap& GetMetadataMap(){ return metadata; }
   
 private:
-  ClassDef(runinfo,1);
+  ClassDef(runinfo,2);
 }; 
 
 

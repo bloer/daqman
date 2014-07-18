@@ -40,5 +40,6 @@ for line in $stl ; do
     echo "#pragma link C++ class $line+;" | sed 's/%/ /g'
 done
 
+echo "#pragma link C++ class std::pair<std::string, std::string>+;"
 #close the ifdef
 echo "#endif /*__MAKECINT__*/"

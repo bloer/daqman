@@ -7,6 +7,8 @@
 #include "TROOT.h"
 #include "TMacro.h"
 
+#include "EventHandler.hh"
+
 #include "TFile.h"
 #include "TTree.h"
 #include <string>
@@ -81,7 +83,10 @@ int RootWriter::Initialize()
   EventData* ptr = new EventData;
   _tree->Branch(EventData::GetBranchName(),&ptr);
   delete ptr;
-  
+  runinfo* rinfo = EventHandler::GetInstance()->GetRunInfo();
+  if(rinfo){
+    _tree->GetUserInfo()->AddFirst(rinfo);
+  }
   SaveConfig();
   return 0;
 }
@@ -117,12 +122,43 @@ int RootWriter::Process(EventPtr event)
   return 0;
 }
 
+TTree* RootWriter::BuildMetadataTree(runinfo* info)
+{
+  TTree* tree = new TTree("metadata","Metadata associated with this run");
+  int run_id = info->runid;
+  tree->Branch("run_id",&run_id);
+  tree->Fill();
+  
+  //make two branches for each metadata: 1 string and 1 double
+  typedef runinfo::stringmap smap;
+  smap& meta = info->GetMetadataMap();
+  for(smap::iterator it = meta.begin(); it != meta.end(); ++it){
+    TBranch* b = tree->Branch(it->first.c_str(), &(it->second));
+    b->Fill();
+    double val = std::atof(it->second.c_str());
+    b = tree->Branch((it->first + "_d").c_str(), &val);
+    b->Fill();
+  }
+  return tree;
+}
+
 int RootWriter::Finalize()
 {
   if(_tree){
     _tree->SetEntries();
-    if(_tree->GetEntries()>0 && _outfile && _outfile->IsOpen())
+    if(_tree->GetEntries()>0 && _outfile && _outfile->IsOpen()){
+      Message(INFO)<<"Constructing tree index...\n";
+      _tree->BuildIndex("run_id","event_id");
+      runinfo* info = (runinfo*)_tree->GetUserInfo()->At(0);
+      if(info){
+	TTree* friendtree = BuildMetadataTree(info);
+	_tree->AddFriend(friendtree);
+	friendtree->Write();
+	delete friendtree;
+      }
       _tree->Write();
+    }
+    _tree->GetUserInfo()->Clear();
     delete _tree;
     _tree = 0;
   }
