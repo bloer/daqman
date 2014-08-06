@@ -131,7 +131,7 @@ TTree* RootWriter::BuildMetadataTree(runinfo* info)
   
   //make two branches for each metadata: 1 string and 1 double
   typedef runinfo::stringmap smap;
-  smap& meta = info->GetMetadataMap();
+  smap& meta = info->metadata;
   for(smap::iterator it = meta.begin(); it != meta.end(); ++it){
     TBranch* b = tree->Branch(it->first.c_str(), &(it->second));
     b->Fill();

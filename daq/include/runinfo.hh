@@ -37,6 +37,7 @@ public:
   runinfo(long id=-1);
   /// virtual destructor to make root happy
   virtual ~runinfo() {}
+  
   /// Initialize parameters to default values
   void Init(bool reset=false);
   ///resets the io keys after a copy operation
@@ -92,11 +93,12 @@ public:
   typedef std::vector<DialogField> FieldList;
 #endif
 
-private:
+public:
   //these fields allow the user to define additional metadata via config files
   ///Arbitrarty per-run info defined by the user
   stringmap metadata; 
   
+private:
 #ifndef __CINT__
   //All the dialog fields refer to entries in the main metadata map
   ///List of fields to query the user for at run start
@@ -110,6 +112,7 @@ private:
   ///Display the postrun dialog even if all fields are already valid
   bool force_postrun_dialog;
     
+public:
   ///Per-channel metadata. Note this cannot be listed as required
   std::map<int, stringmap > channel_metadata;
   //(may add a required_channel_metadata in the future)
@@ -140,10 +143,9 @@ public:
     metadata[key] = s.str();
   }
   
-  stringmap& GetMetadataMap(){ return metadata; }
   
 private:
-  ClassDef(runinfo,2);
+  ClassDef(runinfo,3);
 }; 
 
 

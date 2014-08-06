@@ -159,6 +159,8 @@ DICTOBJS    := $(filter $(DICTOBJS),$(OBJS))
 BUILDLIBS   += lib/libDict.so
 endif
 
+LIBS  += -lmongoclient
+
 all: $(DICT) libs $(BIN) 
 
 doc:
