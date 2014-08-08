@@ -2,7 +2,6 @@
 #define MONGODBINTERFACE_h
 
 #include "VDatabaseInterface.hh"
-#include "Rtypes.h"
 
 #ifndef __CINT__
 #include "mongo/client/dbclient.h"
@@ -65,7 +64,6 @@ private:
   { return *this; }
   MongoDBInterface(const MongoDBInterface& right) {}
   
-  ClassDef(MongoDBInterface,0)
 };
 
 #endif //MONGODBINTERFACE_h
