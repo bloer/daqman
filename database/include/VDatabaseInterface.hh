@@ -55,6 +55,10 @@ public:
   ///Give an interface to configure from string for within daqroot shell
   void Configure(const std::string &s);
   
+  ///Get a concrete database instance by name
+  static VDatabaseInterface* GetConcreteInstance(const std::string& name);
+  
+
 #ifndef __CINT__
   //factory for creating concrete instances
 public:
@@ -75,21 +79,19 @@ public:
     VDatabaseInterface* operator()()
     { return static_cast<VDatabaseInterface*>(new ConcreteDB); }
   };
-  
+  friend class VFactory;
+private:
   ///Register the factory function to the generator
   static void RegisterFactory(const std::string& name, VFactory *f);
   ///Remove a registered factory
   static void RemoveFactory(VFactory* f);
 
 private:
-  static std::map<std::string, VFactory*> _factories;
+  static std::map<std::string, VFactory*>* _factories;
 
 #endif
 
-public:
-  ///Get a concrete database instance by name
-  static VDatabaseInterface* GetConcreteInstance(const std::string& name);
-  
+ 
   ClassDef(VDatabaseInterface,0)
 };
 #endif
