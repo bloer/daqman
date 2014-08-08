@@ -10,6 +10,7 @@
 #include "runinfo.hh"
 #include <string>
 #include <vector>
+#include <map>
 
 /** @class VDatabaseInterface
     @brief Defines an abstract class for storing a loading runinfo from a database 
@@ -50,6 +51,44 @@ public:
   ///Save the runinfo to the database
   enum STOREMODE { INSERT, UPDATE, REPLACE, UPSERT };
   virtual int StoreRuninfo(runinfo* info, STOREMODE mode=UPSERT)=0;
+  
+  ///Give an interface to configure from string for within daqroot shell
+  void Configure(const std::string &s);
+  
+#ifndef __CINT__
+  //factory for creating concrete instances
+public:
+  
+  class VFactory{
+  public:
+    VFactory(const std::string& name) : _name(name)
+    { VDatabaseInterface::RegisterFactory(name,this); }
+    ~VFactory(){ VDatabaseInterface::RemoveFactory(this); }
+    virtual VDatabaseInterface* operator()()=0;
+  private:
+    std::string _name;
+  };
+  
+  template<class ConcreteDB> class Factory : public VFactory{
+  public:
+    Factory(const std::string& name) : VFactory(name){}
+    VDatabaseInterface* operator()()
+    { return static_cast<VDatabaseInterface*>(new ConcreteDB); }
+  };
+  
+  ///Register the factory function to the generator
+  static void RegisterFactory(const std::string& name, VFactory *f);
+  ///Remove a registered factory
+  static void RemoveFactory(VFactory* f);
+
+private:
+  static std::map<std::string, VFactory*> _factories;
+
+#endif
+
+public:
+  ///Get a concrete database instance by name
+  static VDatabaseInterface* GetConcreteInstance(const std::string& name);
   
   ClassDef(VDatabaseInterface,0)
 };

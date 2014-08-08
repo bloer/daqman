@@ -12,6 +12,9 @@ using mongo::Query;
 static runinfo RuninfoFromBSONObj(BSONObj obj);
 static BSONObj RuninfoToBSONObj(runinfo* info);
 
+//register with factory:
+static VDatabaseInterface::Factory<MongoDBInterface> __mongofactory("MongoDB");
+
 MongoDBInterface::MongoDBInterface(const std::string& db,
 				   const std::string& coll,
 				   const std::string& hostname,
@@ -203,7 +206,7 @@ runinfo RuninfoFromBSONObj(BSONObj obj)
   catch(std::exception& e){
     Message(ERROR)<<"Unable to load runinfo: "<<e.what()<<"\n";
   }
-  std::cout<<info<<std::endl;
+
   return info;
 }
 
