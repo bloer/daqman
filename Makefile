@@ -25,7 +25,7 @@ CODE := $(filter-out ./modules/src/TTreeFormula.cc,$(CODE))
 endif
 
 #DATABASES: check for db libraries here and remove otherwise
-ifeq ("$(shell ldconfig -p | grep mongoclients)","")
+ifeq ("$(shell ldconfig -p | grep mongoclient)","")
 CODE := $(filter-out ./database/src/MongoDBInterface.cc,$(CODE))
 else
 LIBS += -lmongoclient
