@@ -140,22 +140,20 @@ int ConvertData::Process(EventPtr event)
 	chdata.min_time = chdata.SampleToTime(min_samp - wave);
 	//find the single photoelectron peak for this channel
 	
-	int chinfo=0;
-	//const RunDB::runinfo::channelinfo* chinfo = 
-	//_info->GetChannelInfo(chdata.channel_id);
-	if(chinfo)
-	  chdata.spe_mean = 1;//chinfo->spe_mean;
-	else
-	  {
-	    chdata.spe_mean = 1;
-	    bool fail = EventHandler::GetInstance()->GetFailOnBadCal();
-	    if(fail){
-	      Message(ERROR)<<"No calibration info for channel "
-			    <<chdata.channel_id<<" in event "
-			    <<data->event_id<<" in run "<<data->run_id<<"\n";
-	      return -1;
-	    }
+	
+	chdata.spe_mean = _info->GetValueChannelMetadata(chdata.channel_id,
+							 "spe_mean",0);
+	if(chdata.spe_mean == 0){
+	  
+	  chdata.spe_mean = 1;
+	  bool fail = EventHandler::GetInstance()->GetFailOnBadCal();
+	  if(fail){
+	    Message(ERROR)<<"No calibration info for channel "
+			  <<chdata.channel_id<<" in event "
+			  <<data->event_id<<" in run "<<data->run_id<<"\n";
+	    return -1;
 	  }
+	}
 
 	// get the PMT information for this channel
 	//chdata.pmt.Load(_cpinfo->pmts[chdata.channel_id]);

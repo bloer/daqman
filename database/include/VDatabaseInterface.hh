@@ -39,7 +39,9 @@ public:
   virtual int Connect()=0;
   ///Close any open database connection
   virtual int Disconnect() { return _connected = 0; }
-  
+  ///Check connection status
+  virtual bool IsConnected() const { return _connected; }
+
   ///Find a single runinfo object by id, returns runid=-1 on error
   virtual runinfo LoadRuninfo(long runid)=0;
   ///Find a single runinfo object by query, returns runid=-1 on error

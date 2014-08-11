@@ -10,6 +10,7 @@
 #include "ParameterList.hh"
 #include "Event.hh"
 #include "runinfo.hh"
+#include "DatabaseConfigurator.hh"
 #include <string>
 #include <vector>
 
@@ -97,6 +98,9 @@ public:
   void AllowDatabaseAccess(bool setval){ _access_database=setval; }
   /// Check whether we are supposed to fail on bad calibration
   bool GetFailOnBadCal() const { return _fail_on_bad_cal;}
+  /// Get a pointer to concrete database instance
+  VDatabaseInterface* GetDatabaseInterface() const 
+  {return _access_database ? _dbconfig.GetDB() : 0;}
 private:
   std::vector<BaseModule*> _modules;
   std::vector<BaseModule*> _processing_modules;
@@ -107,7 +111,7 @@ private:
   runinfo _runinfo; ///< general metadata about the run
   bool _access_database; ///< do we query the database for missing info?
   bool _fail_on_bad_cal; ///< Fail to initialize if no calibration data found
-  
+  DatabaseConfigurator _dbconfig; ///configure a concrete database interface
   bool _run_parallel;   ///< process modules in parallel
   std::vector<AsyncEventHandler*> _para_handlers;
 };

@@ -49,6 +49,9 @@ public:
   /// Try to load runinfo from config saved in a TMacro; return 0 if success
   int LoadSavedInfo(TMacro* mac);
   
+  /// Merge metadata from another source, optionally overwrite common keys
+  void MergeMetadata(const runinfo* other, bool overwritedups = false);
+  
   //metadata to save for all runs, determined automatically from daq settings
   
   /* note: By default runs have a prefix (per experiment, default 'rawdaq') 
@@ -132,9 +135,34 @@ public:
   double GetValueMetadata(const std::string& key, double def = 0.)
   {  std::string s = GetMetadata(key,""); 
     return s == "" ? def : atof(s.c_str()); }
+  
+  ///Get channel's metadata
+  std::string GetChannelMetadata(int ch, const std::string& key, 
+				 const std::string& def ="")
+  {
+    if(channel_metadata.count(ch)){
+      stringmap& cmeta = channel_metadata[ch];
+      stringmap::iterator it = cmeta.find(key);
+      return it == cmeta.end() ? def : it->second;
+    }
+    return def;
+  }
+  
+  ///Get channel's metadata as value
+  double GetValueChannelMetadata(int ch, const std::string& key, 
+				      double def = 0.)
+  {
+    std::string s = GetChannelMetadata(ch,key,"");
+    return s == "" ? def : atof(s.c_str());
+  }
+  
   ///Explicitly set metadata
   void SetMetadata(const std::string& key, const std::string& val)
   { metadata[key] = val; }
+  
+  void SetChannelMetadata(int ch, const std::string& key, 
+			  const std::string& val)
+  { channel_metadata[ch][key] = val; }
 
   ///convenience function to set metadata using ostream overload
   template<class T> void SetMetadata(const std::string& key, const T& val){
@@ -145,7 +173,7 @@ public:
   
   
 private:
-  ClassDef(runinfo,3);
+  ClassDef(runinfo,4);
 }; 
 
 

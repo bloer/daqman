@@ -15,15 +15,15 @@ class DatabaseConfigurator{
 public:
   DatabaseConfigurator() : _dbname("NONE"), _db(0) {}
   ~DatabaseConfigurator(){ delete _db; }
-  VDatabaseInterface* GetDB(){ return _db; }
+  VDatabaseInterface* GetDB() const { return _db; }
   
   std::ostream& WriteTo(std::ostream& out) const;
   std::istream& ReadFrom(std::istream& in);
 };
 
-std::ostream& operator<<(std::ostream& out, const DatabaseConfigurator& d)
+inline std::ostream& operator<<(std::ostream& out,const DatabaseConfigurator& d)
 { return d.WriteTo(out); }
-std::istream& operator>>(std::istream& in, DatabaseConfigurator& d)
+inline std::istream& operator>>(std::istream& in, DatabaseConfigurator& d)
 { return d.ReadFrom(in); }
 
 #endif

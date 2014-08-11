@@ -59,6 +59,8 @@ void MongoDBInterface::Configure(const std::string& db,
 
 int MongoDBInterface::Connect()
 {
+  if(_connected)
+    return true;
   std::string err = "";
   
   try{
@@ -78,9 +80,9 @@ int MongoDBInterface::Connect()
   return 0;
 }
 
-int MongoDBInterface::Disconnect()
+int MongoDBInterface::Disconnect() //no-op!
 {
-  _connected = false;
+  //_connected = false;
   return 0;
 }
 
