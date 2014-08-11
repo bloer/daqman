@@ -59,7 +59,14 @@ int ConvertData::Initialize()
   }
   
   _info = EventHandler::GetInstance()->GetRunInfo();
-  
+  //pre-fill the calibration map
+  std::map<int,runinfo::stringmap>::iterator it;
+  for(it = _info->channel_metadata.begin(); it != _info->channel_metadata.end();
+      ++it){
+    if((it->second).count("spe_mean"))
+      _spemeans[it->first] = atof((it->second)["spe_mean"].c_str());
+  }
+ 
   return 0;
 }
 
@@ -140,18 +147,22 @@ int ConvertData::Process(EventPtr event)
 	chdata.min_time = chdata.SampleToTime(min_samp - wave);
 	//find the single photoelectron peak for this channel
 	
-	
-	chdata.spe_mean = _info->GetValueChannelMetadata(chdata.channel_id,
-							 "spe_mean",0);
+	chdata.spe_mean = _spemeans[chdata.channel_id];
 	if(chdata.spe_mean == 0){
+	  //see if we haven't got it from calibration yet
+	  chdata.spe_mean = _spemeans[chdata.channel_id] = 
+	    _info->GetValueChannelMetadata(chdata.channel_id,"spe_mean",0);
 	  
-	  chdata.spe_mean = 1;
-	  bool fail = EventHandler::GetInstance()->GetFailOnBadCal();
-	  if(fail){
-	    Message(ERROR)<<"No calibration info for channel "
-			  <<chdata.channel_id<<" in event "
-			  <<data->event_id<<" in run "<<data->run_id<<"\n";
-	    return -1;
+	  //if still 0, see if we need to throw an error
+	  if(chdata.spe_mean == 0){
+	    chdata.spe_mean = _spemeans[chdata.channel_id] = 1;
+	    bool fail = EventHandler::GetInstance()->GetFailOnBadCal();
+	    if(fail){
+	      Message(ERROR)<<"No calibration info for channel "
+			    <<chdata.channel_id<<" in event "
+			    <<data->event_id<<" in run "<<data->run_id<<"\n";
+	      return -1;
+	    }
 	  }
 	}
 
