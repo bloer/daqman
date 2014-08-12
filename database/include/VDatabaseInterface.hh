@@ -69,7 +69,7 @@ public:
   public:
     VFactory(const std::string& name) : _name(name)
     { VDatabaseInterface::RegisterFactory(name,this); }
-    ~VFactory(){ VDatabaseInterface::RemoveFactory(this); }
+    virtual ~VFactory(){ VDatabaseInterface::RemoveFactory(this); }
     virtual VDatabaseInterface* operator()()=0;
   private:
     std::string _name;
