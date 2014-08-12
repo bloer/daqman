@@ -47,7 +47,10 @@ EventHandler::EventHandler() :
   config->RegisterParameter(this->GetDefaultKey(),*this);
   config->RegisterParameter(_runinfo.GetDefaultKey(), _runinfo);
   
-  RegisterReadFunction("access_database", DeprecatedParameter<bool>());
+  RegisterParameter("access_database", _access_database = false,
+		    "Enable or disable db access. Must configure to work!");
+  RegisterParameter("configure_database",_dbconfig,
+		    "Init and configure a concrete database interface");
   
   RegisterParameter("fail_on_bad_cal", _fail_on_bad_cal=false,
 		    "Fail to initialize if unable to  find calibration data");
@@ -115,16 +118,49 @@ int EventHandler::Initialize()
 		<<" registered modules...\n";
   _is_initialized = true;
   
-  //initialize the runinfo
-  //how to allow overriding runinfo settings?
+  /*initialize the runinfo
+    order of priority for metadata settings is: (higher numbers override)
+    1) saved in run's config file
+    2) stored in database
+    3) written into current programs runinfo config block
+    
+    But our existing runinfo is already read from the config file, so 
+    we'll have to use some temporaries to get the right override order
+  */
+  
+
+  if(_runinfo.runid == -1)
+    _runinfo.runid = run_id;
+
+  runinfo savedinfo;
+  //first look for info in the saved config file
   try{
-    ConfigHandler::GetInstance()->LoadParameterList(&_runinfo);
+    ConfigHandler::GetInstance()->LoadParameterList(&savedinfo);
   }
   catch(std::exception& e){
     Message(WARNING)<<"Saved runinfo will not be used in this processing!\n";
   }
-  if(_runinfo.runid == -1)
-    _runinfo.runid = run_id;
+  
+  //now try the database
+  try{
+    VDatabaseInterface* db = GetDatabaseInterface();
+    if(db){
+      runinfo dbinfo = db->LoadRuninfo(_runinfo.runid);
+      if(dbinfo.runid == _runinfo.runid){ //make sure we actually loaded
+	savedinfo.MergeMetadata(&dbinfo, true); //overwrite settings
+      }
+    }
+  }
+  catch(std::exception& e){
+    Message(ERROR)<<"There was an error reading from the database: "
+		  <<e.what()<<"\n";
+    if(_fail_on_bad_cal)
+      return 1;
+  }
+  
+  //finally merge into "the" runinfo object
+  _runinfo.MergeMetadata(&savedinfo, /*overwritedups = */false);
+  
 
   //this info is in the raw file, so reset it:
   _runinfo.ResetRunStats();

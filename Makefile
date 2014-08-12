@@ -24,6 +24,13 @@ ifneq ("$(ROOTVERSION)","5.34/19")
 CODE := $(filter-out ./modules/src/TTreeFormula.cc,$(CODE))
 endif
 
+#DATABASES: check for db libraries here and remove otherwise
+ifeq ("$(shell ldconfig -p | grep mongoclient)","")
+CODE := $(filter-out ./database/src/MongoDBInterface.cc,$(CODE))
+else
+LIBS += -lmongoclient
+endif
+
 #all .cc files in exe/ will make executables
 MAIN_CODE   := $(shell find ./exe -name '*.cc' | sort)
 #all main code links against all others

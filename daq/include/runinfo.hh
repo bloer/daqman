@@ -37,6 +37,7 @@ public:
   runinfo(long id=-1);
   /// virtual destructor to make root happy
   virtual ~runinfo() {}
+  
   /// Initialize parameters to default values
   void Init(bool reset=false);
   ///resets the io keys after a copy operation
@@ -47,6 +48,9 @@ public:
   
   /// Try to load runinfo from config saved in a TMacro; return 0 if success
   int LoadSavedInfo(TMacro* mac);
+  
+  /// Merge metadata from another source, optionally overwrite common keys
+  void MergeMetadata(const runinfo* other, bool overwritedups = false);
   
   //metadata to save for all runs, determined automatically from daq settings
   
@@ -92,11 +96,12 @@ public:
   typedef std::vector<DialogField> FieldList;
 #endif
 
-private:
+public:
   //these fields allow the user to define additional metadata via config files
   ///Arbitrarty per-run info defined by the user
   stringmap metadata; 
   
+private:
 #ifndef __CINT__
   //All the dialog fields refer to entries in the main metadata map
   ///List of fields to query the user for at run start
@@ -110,6 +115,7 @@ private:
   ///Display the postrun dialog even if all fields are already valid
   bool force_postrun_dialog;
     
+public:
   ///Per-channel metadata. Note this cannot be listed as required
   std::map<int, stringmap > channel_metadata;
   //(may add a required_channel_metadata in the future)
@@ -129,9 +135,34 @@ public:
   double GetValueMetadata(const std::string& key, double def = 0.)
   {  std::string s = GetMetadata(key,""); 
     return s == "" ? def : atof(s.c_str()); }
+  
+  ///Get channel's metadata
+  std::string GetChannelMetadata(int ch, const std::string& key, 
+				 const std::string& def ="")
+  {
+    if(channel_metadata.count(ch)){
+      stringmap& cmeta = channel_metadata[ch];
+      stringmap::iterator it = cmeta.find(key);
+      return it == cmeta.end() ? def : it->second;
+    }
+    return def;
+  }
+  
+  ///Get channel's metadata as value
+  double GetValueChannelMetadata(int ch, const std::string& key, 
+				      double def = 0.)
+  {
+    std::string s = GetChannelMetadata(ch,key,"");
+    return s == "" ? def : atof(s.c_str());
+  }
+  
   ///Explicitly set metadata
   void SetMetadata(const std::string& key, const std::string& val)
   { metadata[key] = val; }
+  
+  void SetChannelMetadata(int ch, const std::string& key, 
+			  const std::string& val)
+  { channel_metadata[ch][key] = val; }
 
   ///convenience function to set metadata using ostream overload
   template<class T> void SetMetadata(const std::string& key, const T& val){
@@ -140,10 +171,9 @@ public:
     metadata[key] = s.str();
   }
   
-  stringmap& GetMetadataMap(){ return metadata; }
   
 private:
-  ClassDef(runinfo,2);
+  ClassDef(runinfo,4);
 }; 
 
 

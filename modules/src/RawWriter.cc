@@ -28,6 +28,9 @@ RawWriter::RawWriter() :
 		    "zip compression level of the event structures");
   RegisterParameter("save_config", _save_config = true,
 		    "Do we save the configuration along with the data?");
+  RegisterParameter("write_database", _write_database = false, 
+		    "Save a copy of the runinfo to a database?");
+  
   RegisterParameter("max_file_size", _max_file_size = 0x80000000, //2 GiB
 		    "Maximum file size before making a new file");
   RegisterParameter("max_event_in_file", _max_event_in_file = 10000 , 
@@ -75,7 +78,6 @@ int RawWriter::Initialize()
       return ret;
     }
   }
-  
   if( _filename == ""){
     //was not set manually, so use auto
     _filename = GetDefaultFilename();
@@ -218,6 +220,8 @@ int RawWriter::Process(EventPtr event)
 
 int RawWriter::Finalize()
 {
+  int status = 0;
+
   if(_fout.is_open()){
     CloseCurrentFile();
     Message(INFO)<<_bytes_written/1024/1024<<" MiB saved to "<<_filename<<"\n";
@@ -230,17 +234,34 @@ int RawWriter::Finalize()
       //Message(ERROR)<<"Unable to delete file!\n";
     }
   }
-  if(_save_config && _bytes_written > 0){
-    //query user for run metadata
+  
+
+  if(_bytes_written > 0){
     runinfo* info = EventHandler::GetInstance()->GetRunInfo();
     if(info){
-      int ret = info->FillDataForRun(runinfo::RUNEND);
-      if(ret){
-	Message(WARNING)<<"User cancel or error filling end of run metadata!\n";
-	//return ret;
+      if(_save_config || _write_database){
+	int ret = info->FillDataForRun(runinfo::RUNEND);
+	if(ret){
+	  Message(WARNING)<<"User cancel or error filling end run metadata!\n";
+	  status = ret;
+	  //return ret;
+	}
+      }
+      if(_write_database){
+	VDatabaseInterface* db = EventHandler::GetInstance()->
+	  GetDatabaseInterface();
+	if(db){
+	  status = db->StoreRuninfo(info);
+	}
+	else{
+	  Message(ERROR)<<"RawWriter: write_dabase enabled, but no database "
+			<<" configured!\n";
+	}
       }
     }
-    SaveConfigFile();
+    if(_save_config){
+      SaveConfigFile();
+    }
   }
   if(_logout.is_open()){
     Message(DEBUG)<<"Closing logfile.\n";
@@ -248,7 +269,7 @@ int RawWriter::Finalize()
     _log_messenger = 0;
     _logout.close();
   }
-  return 0;
+  return status;
 }
 
 
