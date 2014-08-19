@@ -25,10 +25,10 @@ CODE := $(filter-out ./modules/src/TTreeFormula.cc,$(CODE))
 endif
 
 #DATABASES: check for db libraries here and remove otherwise
-ifeq ("$(shell /sbin/ldconfig -p | grep mongoclient)","")
+ifeq ("$(shell locate mongoclient)","")
 CODE := $(filter-out ./database/src/MongoDBInterface.cc,$(CODE))
 else
-LIBS += -lmongoclient
+LIBS += -lmongoclient -lboost_thread
 endif
 
 #all .cc files in exe/ will make executables
