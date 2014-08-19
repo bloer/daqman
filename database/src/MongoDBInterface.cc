@@ -60,7 +60,7 @@ void MongoDBInterface::Configure(const std::string& db,
 int MongoDBInterface::Connect()
 {
   if(_connected)
-    return true;
+    return 0;
   std::string err = "";
   
   try{
@@ -170,9 +170,9 @@ runinfo RuninfoFromBSONObj(BSONObj obj)
   try{
     info.runid = obj.getIntField("runid");
     if(obj.hasField("starttime"))
-      info.starttime = obj.getField("starttime").Date().toTimeT();
+      info.starttime = obj.getField("starttime").Date() / 1000;
     if(obj.hasField("endtime"))
-      info.endtime = obj.getField("endtime").Date().toTimeT();
+      info.endtime = obj.getField("endtime").Date() / 1000;
     if(obj.hasField("triggers"))
       info.triggers = obj.getIntField("triggers");
     if(obj.hasField("events"))
@@ -190,10 +190,13 @@ runinfo RuninfoFromBSONObj(BSONObj obj)
     }
   
     if(obj.hasField("channel_metadata")){
-      BSONObj chans = obj.getObjectField("chans");
+      BSONObj chans = obj.getObjectField("channel_metadata");
       for(BSONObj::iterator i = chans.begin(); i.more(); ){
 	BSONElement e = i.next();
-	int chan = atoi(e.fieldName());
+	std::string fname = e.fieldName();
+	if(fname[0]=='"' && fname[fname.length()-1] == '"')
+	  fname = fname.substr(1,fname.length()-2);
+	int chan = atoi(fname.c_str());
 	stringmap& cmeta = info.channel_metadata[chan];
 	for(BSONObj::iterator j = e.Obj().begin(); j.more(); ){
 	  BSONElement e2 = j.next();
