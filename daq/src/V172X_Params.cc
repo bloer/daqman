@@ -199,7 +199,7 @@ int V172X_BoardParams::UpdateBoardSpecificVariables()
     sample_bits = 14;
     bytes_per_sample = 2;
     v_full_scale = 2;
-    stupid_size_factor = 5;
+    stupid_size_factor = 4;
     ns_per_clocktick = 8;
     break;
   default:
@@ -258,6 +258,8 @@ uint32_t V172X_BoardParams::GetCustomSizeSetting() const
 {
   if(board_type == V1751)
     return GetTotalNSamps()/stupid_size_factor;
+  else if(board_type == V1730)
+    return GetTotalNSamps() / 10;
   return GetTotalNSamps()*bytes_per_sample/
     ( sizeof(uint32_t) * stupid_size_factor);
 }
