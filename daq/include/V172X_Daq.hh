@@ -49,6 +49,13 @@ public:
     the address which generated it, and set the eStatus enum of the class 
     to the appropriate value.
   */
+  
+  ///Write to a register of a digitizer only
+  void WriteDigitizerRegister(uint32_t address, uint32_t write_me, 
+			      int32_t handle) throw(std::runtime_error);
+  ///Read from a digitizer register
+  uint32_t ReadDigitizerRegister(uint32_t address, int32_t handle) throw(std::runtime_error);
+  
   /**
      Writes the data <write_me> to the VME address <address>
      @param address The address to write the data to

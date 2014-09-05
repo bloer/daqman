@@ -28,7 +28,7 @@ endif
 ifeq ("$(shell locate mongoclient)","")
 CODE := $(filter-out ./database/src/MongoDBInterface.cc,$(CODE))
 else
-LIBS += -lmongoclient -lboost_thread
+LIBS += -lmongoclient 
 endif
 
 #all .cc files in exe/ will make executables
@@ -74,7 +74,7 @@ LDFLAGS     += -lz $(DEBUGFLAGS)
 BUILDLIBS   := lib/libdaqman.so
 
 #some more optional libraries
-CAENLIBS    := -L/usr/local/lib64 -lCAENVME
+CAENLIBS    := -L/usr/local/lib64 -lCAENVME -lCAENDigitizer
 #specific hack to avoid corrupted libs on blackhole
 ifeq ("$(shell /bin/hostname)","blackhole.lngs.infn.it")
 THREADLIBS  += -L/usr/local/lib64/boost -lboost_thread -lboost_date_time
@@ -98,7 +98,7 @@ ifeq ($(UNAME),"Linux")
 CXXFLAGS += -DLINUX
 LIBFLAGS += -Wl,-soname,$(notdir $@) -shared 
 #don't do CAEN stuff if the CAENVME librry is not installed 
-ifeq ("$(shell /sbin/ldconfig -p | grep CAENVME)","")
+ifeq ("$(shell /sbin/ldconfig -p | grep CAENDigitizer)","")
 SKIPCAEN = true
 endif
 else 

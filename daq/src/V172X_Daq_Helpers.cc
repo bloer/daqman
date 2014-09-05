@@ -1,5 +1,6 @@
 #include "V172X_Daq.hh"
 #include "CAENVMElib.h"
+#include "CAENDigitizer.h"
 #include "Message.hh"
 //#include "exstream.hh"
 #include <exception>
@@ -8,7 +9,7 @@
 //change this if CAENVME_MultiWrite/Read starts working...
 //DO NOT CHANGE since now several handles are used one for each board
 const bool stupid = true;
-
+typedef CAEN_DGTZ_ErrorCode ErrC;
 CVAddressModifier add_mod[20] = { cvA32_U_DATA,cvA32_U_DATA,cvA32_U_DATA,
 				  cvA32_U_DATA,cvA32_U_DATA,cvA32_U_DATA,
 				  cvA32_U_DATA,cvA32_U_DATA,cvA32_U_DATA,
@@ -20,6 +21,34 @@ CVDataWidth data_width[20] = { cvD32,cvD32,cvD32,cvD32,cvD32,cvD32,
 			       cvD32,cvD32,cvD32,cvD32,cvD32,cvD32,
 			       cvD32,cvD32,cvD32,cvD32,cvD32,cvD32,
 			       cvD32,cvD32, };
+
+//using the new CAENDigitizer libraray
+void V172X_Daq::WriteDigitizerRegister(uint32_t address, uint32_t write_me,
+				       int32_t handle) throw(std::runtime_error)
+{
+  ErrC err = CAEN_DGTZ_WriteRegister(handle, address, write_me);
+  if(err != CAEN_DGTZ_Success){
+    _status = COMM_ERROR;
+    Message e(EXCEPTION);
+    e <<" Error "<<err<<" writing to digitizer register "
+      <<std::hex<<std::showbase<<address<<"\n";
+    throw std::runtime_error(e.str());
+  }
+}
+
+uint32_t V172X_Daq::ReadDigitizerRegister(uint32_t address, int32_t handle) throw(std::runtime_error)
+{
+  uint32_t data = 0;
+  ErrC err = CAEN_DGTZ_ReadRegister(handle, address, &data);
+  if(err != CAEN_DGTZ_Success){
+    _status = COMM_ERROR;
+    Message e(EXCEPTION);
+    e <<" Error "<<err<<" reading from digitizer register "
+      <<std::hex<<std::showbase<<address<<"\n";
+    throw std::runtime_error(e.str());
+  }
+  return data;
+}
 
 void V172X_Daq::WriteVMERegister(uint32_t address, 
 				 uint32_t write_me, int32_t handle) throw(std::runtime_error)
