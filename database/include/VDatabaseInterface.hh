@@ -24,11 +24,11 @@ class VDatabaseInterface{
 #endif 
 
 public:
-  VDatabaseInterface(const std::string& defkeyname="DatabaseInterface")
+  VDatabaseInterface(const std::string& defkeyname="DatabaseInterface") : 
 #ifndef __CINT__
-    : ParameterList(defkeyname,"Store and load runinfo from a database")
+    ParameterList(defkeyname,"Store and load runinfo from a database"),
 #endif
-  {}
+    _connected(false) {}
   virtual ~VDatabaseInterface() { if(_connected) Disconnect(); }
   
 protected:

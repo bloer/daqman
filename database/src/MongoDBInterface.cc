@@ -62,22 +62,22 @@ int MongoDBInterface::Connect()
   if(_connected)
     return 0;
   std::string err = "";
-  
   try{
     _dbconnection.connect(mongo::HostAndPort(host,port));
-    if(user != "")
+     if(user != "")
       _dbconnection.auth(database,user,password, err);
+  
   }
   catch(const std::exception& e){
-    Message(ERROR)<<"MongoDBInterface::Connect caught exception "
+     Message(ERROR)<<"MongoDBInterface::Connect caught exception "
 		  <<e.what()<<" while trying to connect.\n"
 		  <<"Error message: "<<err<<"\n";
-    return 1;
+     return 1;
   }
-  Message(DEBUG)<<"Successfully connected to mongo database "<<database
+   Message(DEBUG)<<"Successfully connected to mongo database "<<database
 		  <<" at "<<host<<":"<<port<<"\n";
-  _connected = true;
-  return 0;
+   _connected = true;
+   return 0;
 }
 
 int MongoDBInterface::Disconnect() //no-op!

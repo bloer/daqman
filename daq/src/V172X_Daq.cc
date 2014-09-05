@@ -108,13 +108,13 @@ int init_link (int link, int board, bool usb, int32_t *handle) {
     m<<"\t"<<CAENVME_DecodeError(err)<<std::endl;
     return -1;
   }
-  char message[100];
+  //char message[100];
   Message(DEBUG)<<"CAEN VME bridge successfully initialized for link " 
 		<< link << "!"<<std::endl;
-  CAENVME_BoardFWRelease(*handle,message);
-  Message(DEBUG)<<"\tFirmware Release: "<<message<<std::endl;
-  CAENVME_DriverRelease(*handle,message);
-  Message(DEBUG)<<"\tDriver Release: "<<message<<std::endl;
+  //CAENVME_BoardFWRelease(*handle,message);
+  //Message(DEBUG)<<"\tFirmware Release: "<<message<<std::endl;
+  //CAENVME_DriverRelease(*handle,message);
+  //Message(DEBUG)<<"\tDriver Release: "<<message<<std::endl;
   Message(INFO)<< "Link " << link << " initialized on handle " 
 	       << *handle <<std::endl;
   return 0;
