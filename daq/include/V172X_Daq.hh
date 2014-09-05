@@ -100,6 +100,10 @@ public:
   //std::vector<uint8_t*> raw_buffer;
   //std::vector<boost::mutex*> buffer_mutex;
   
+  
+  //low-level utility functions
+  int waitforstable(int32_t handle, int channel);
+
 };
 
 #endif

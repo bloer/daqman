@@ -192,7 +192,9 @@ int V172X_Daq::Initialize()
       }
     }
   } 
-  
+  Message(INFO)<<"CAEN DAQ initialized\n";
+  _initialized = true;
+
   return Update();
 }
 
@@ -201,7 +203,8 @@ int V172X_Daq::InitializeBoard(int boardnum)
   V172X_BoardParams& board = _params.board[boardnum];
   int32_t handle = _handle_board[boardnum];
   
-  WriteDigitizerRegister(VME_SWReset, 1, handle);
+  //WriteDigitizerRegister(VME_SWReset, 1, handle);
+  CAEN_DGTZ_Reset(handle);
   uint32_t data = ReadDigitizerRegister(VME_BoardInfo, handle);
   board.board_type = (BOARD_TYPE)(data&0xFF);
   board.nchans = (data>>16)&0xFF;
@@ -224,6 +227,23 @@ int V172X_Daq::InitializeBoard(int boardnum)
 		   board.id, handle);
   WriteDigitizerRegister(VME_InterruptID,
 		   board.id, handle);
+  return 0;
+}
+
+int V172X_Daq::waitforstable(int32_t handle, int channel)
+{
+  int tries = 0;
+  uint32_t status = ReadDigitizerRegister(VME_ChStatus +channel*0x100, handle);
+  while((status&0x4) || !(status&0x2)){
+    if(++tries > 200){
+      Message(ERROR)<<"Channel "<<channel<<" will not stabilize offset!\n";
+      return tries;
+    }
+    Message(DEBUG2)<<"Waiting for channel "<<channel<<" to stabilize. "
+		   <<"Status is "<<std::hex<<status<<"\n";
+    boost::this_thread::sleep(boost::posix_time::millisec(50));
+    ReadDigitizerRegister(VME_ChStatus +channel*0x100, handle);
+  }
   return 0;
 }
 
@@ -299,14 +319,10 @@ int V172X_Daq::Update()
 	if(nsamp >= (1<<12)) nsamp = (1<<12) - 1;
 	WriteDigitizerRegister(VME_ChTrigSamples+i*0x100, nsamp, handle);
 	//dc offset
-	WriteDigitizerRegister(VME_ChDAC+i*0x100, channel.dc_offset, handle);
-	//wait until the dac has updated
-	uint32_t status = 0x4;
-	while( channel.enabled &&( (status&0x4) || !(status&0x2)) ){
-	  //std::cerr<<"Waiting for channel "<<i<<" of board "<<iboard<<" to update DAC...";
-	  status = ReadDigitizerRegister(VME_ChStatus +i*0x100, handle);
-	  //std::cerr<<" status is now "<<status<<std::endl;
-	}
+	waitforstable(handle,i);
+	CAEN_DGTZ_SetChannelDCOffset(handle,i, channel.dc_offset);
+	waitforstable(handle,i);
+	//WriteDigitizerRegister(VME_ChDAC+i*0x100, channel.dc_offset, handle);
       }
       //finish up with the board parameters
       uint32_t channel_config = (1<<16) * board.zs_type + 
