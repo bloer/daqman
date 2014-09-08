@@ -5,6 +5,7 @@ which inherits from the WARP_VetoDAQ class.
 ----------------------------------------------------------*/
 
 #include "V172X_Daq.hh"
+#include "V172X_Event.hh"
 //#include "CAEN_V172XEvent.hh"
 #include "CAENVMElib.h"
 #include "CAENDigitizer.h"
@@ -20,6 +21,7 @@ which inherits from the WARP_VetoDAQ class.
 #include "boost/timer.hpp"
 #include "boost/date_time/posix_time/posix_time_duration.hpp"
 #include <sstream>
+#include <numeric>
 
 //declare some useful constants
 const int event_size_padding = 8;
@@ -262,8 +264,14 @@ int V172X_Daq::Update()
   try{
     for(int iboard=0; iboard < _params.nboards; iboard++){
       V172X_BoardParams& board = _params.board[iboard];
-      //downsample factor is not implemented in modern firmware
-      board.downsample_factor=1; 
+      if(board.downsample_factor < 1)
+	board.downsample_factor=1; 
+      if(board.zs_type != NONE){
+	Message(INFO)<<"Software downsampling not enabled for "
+		     <<"zero suppressed data\n";
+	board.downsample_factor = 1;
+      }
+	
       if(!board.enabled) 
 	continue;
       int handle = _handle_board[iboard];
@@ -428,7 +436,7 @@ int V172X_Daq::Update()
     The header size is 16 bytes per board
     The data size is 2 bytes per sample per channel
     */
-    Message(DEBUG)<<"The expected event size is "<<_params.GetEventSize()
+    Message(DEBUG)<<"The expected event size is "<<_params.GetEventSize(false)
 		  <<" bytes."<<std::endl;   
     //wait 2 seconds for DC offset levels to adjust
     time_t now = time(0);
@@ -445,6 +453,80 @@ bool DataAvailable(uint32_t status)
 {
   return (status & 0x8);
 }
+
+class Average{
+ private: 
+  unsigned factor;
+  unsigned bytes;
+  char* start;
+  uint32_t mask;
+ public:
+  Average(char* _start, unsigned _factor, unsigned _bytes) : 
+    factor(_factor), bytes(_bytes), start(_start) { mask = (1<<(8*bytes))-1; }
+  uint32_t operator()(){
+    uint32_t out = 0;
+    for(size_t i=0; i<factor; ++i){
+      out += (*(uint32_t*)(start)) & mask;
+      start += bytes;
+    }
+    return out / factor;
+  }
+};
+
+int DownsampleEvent(unsigned char* buf, uint32_t& factor, long& eventsize, 
+		    int bytes_per_sample)
+{
+  V172X_BoardData board(buf);
+  if(board.zle_enabled){
+    factor = 1;
+    return 1;
+  }
+  int nsamps = 0;
+  for(int i=0; i<board.nchans; ++i){
+    if(board.channel_mask & (1<<i)){
+      nsamps = (board.channel_end[i] - board.channel_start[i])/bytes_per_sample;
+      break;
+    }
+  }
+  if(nsamps <=0)
+    return 2;
+  //should divide evenly!
+  if(nsamps % factor){
+    Message(WARNING)<<"Cannot downsample "<<nsamps<<" samples evenly by "
+		    <<factor<<"; reducing automatically.\n";
+    while(--factor > 1 && (nsamps%factor)) {}
+    if(factor <= 1){
+      factor = 1;
+      return 3;
+    }
+    Message(INFO)<<"New downsample factor is "<<factor<<"\n";
+  }
+  //now actually do the division
+  eventsize = 16;
+  for(int i=0; i<board.nchans; ++i){
+    if(board.channel_start[i]){
+      Average avg(board.channel_start[i], factor, bytes_per_sample);
+      if(bytes_per_sample == 1)
+	std::generate((uint8_t*)(buf+eventsize),
+		      (uint8_t*)(buf+eventsize+nsamps/factor*bytes_per_sample),
+		      avg);
+      else if(bytes_per_sample < 3)
+	std::generate((uint16_t*)(buf+eventsize),
+		      (uint16_t*)(buf+eventsize+nsamps/factor*bytes_per_sample),
+		      avg);
+      else
+	std::generate((uint32_t*)(buf+eventsize),
+		      (uint32_t*)(buf+eventsize+nsamps/factor*bytes_per_sample),
+		      avg);
+      eventsize += nsamps / factor * bytes_per_sample;
+
+    }
+  }
+  //update the event size in the raw event buffer
+  ((uint32_t*)(buf))[0] = 0xA0000000 + (eventsize / sizeof(uint32_t));
+  return eventsize;
+}
+
 
 void V172X_Daq::DataAcquisitionLoop()
 {
@@ -660,7 +742,14 @@ void V172X_Daq::DataAcquisitionLoop()
 	  _is_running=false;
 	  break;
 	}
-      
+	
+	if(_params.board[i].downsample_factor > 1){
+	  DownsampleEvent(buffer+data_transferred, 
+			  _params.board[i].downsample_factor, ev_size, 
+			  _params.board[i].bytes_per_sample);
+	   
+	}
+	
 	data_transferred += ev_size;
 	
       }
