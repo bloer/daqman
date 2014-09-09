@@ -36,22 +36,23 @@ int ConvertData::Initialize()
   if(!_v172X_params) 
     _v172X_params = dynamic_cast<V172X_Params*>
       (config->GetParameter(V172X_Params().GetDefaultKey()));
+  else{
     //if that didn't work, we need to load it
-  bool err = 0;
-  if(config->GetSavedCfgFile() != "")
-    err = config->LoadCreateParameterList(_v172X_params);
-  if(_v172X_params){
-    Message(DEBUG)<<"Number of V172X boards in this run: "
-		  <<_v172X_params->GetEnabledBoards()<<"\n";
-    //make sure all the per-board params are set
-    for(int i=0; i<_v172X_params->GetEnabledBoards(); i++){
-      V172X_BoardParams& board = _v172X_params->board[i];
-      board.UpdateBoardSpecificVariables();
+    bool err = 0;
+    if(config->GetSavedCfgFile() != "")
+      err = config->LoadCreateParameterList(_v172X_params);
+    if(_v172X_params){
+      Message(DEBUG)<<"Number of V172X boards in this run: "
+		    <<_v172X_params->GetEnabledBoards()<<"\n";
+      //make sure all the per-board params are set
+      for(int i=0; i<_v172X_params->GetEnabledBoards(); i++){
+	V172X_BoardParams& board = _v172X_params->board[i];
+	board.UpdateBoardSpecificVariables();
+      }
+      //make sure some intermediate values are set
+      _v172X_params->GetEventSize();
     }
-    //make sure some intermediate values are set
-    _v172X_params->GetEventSize();
   }
-  
   
   if(!_v172X_params){
      Message(ERROR)<<"Unable to load saved configuration information!\n";

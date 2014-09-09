@@ -149,15 +149,15 @@ public:
 
   //utility functions
   /// Get the sample rate used, in samples per microsecond
-  double GetSampleRate() const; 
+  double GetSampleRate(bool downsamp = true) const; 
   /// Get the number of samples before the trigger
-  uint32_t GetPreNSamps() const;
+  uint32_t GetPreNSamps(bool downsamp=true) const;
   /// Get the number of samples after the trigger
-  uint32_t GetPostNSamps() const;
+  uint32_t GetPostNSamps(bool downsamp=true) const;
   /// Get the total number of samples read
-  uint32_t GetTotalNSamps() const;
+  uint32_t GetTotalNSamps(bool downsamp=true) const;
   /// Get the sample number at which the trigger occurred
-  int GetTriggerIndex() const;
+  int GetTriggerIndex(bool downsamp = true) const;
   /// Get the total number of buffers
   uint32_t GetTotalNBuffers() const;
   /// number of triggers that can be stored in buffer is 2^n
@@ -200,7 +200,7 @@ public:
   V172X_BoardParams board[nboards];          ///< parameters for each board
   //utility functions
   /// Get the expected total event size in bytes
-  int GetEventSize(); 
+  int GetEventSize(bool downsamp = true); 
   /// Get the number of boards enabled in this run
   int GetEnabledBoards();
   /// Get the number of channels enabled in this run

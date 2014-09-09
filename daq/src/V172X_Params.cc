@@ -211,26 +211,26 @@ int V172X_BoardParams::UpdateBoardSpecificVariables()
 
 //Utility functions
 //returns sample rate in samples per microsecond
-double V172X_BoardParams::GetSampleRate() const
+double V172X_BoardParams::GetSampleRate(bool downsamp) const
 {
   //if(downsample_factor > 10) downsample_factor = 10;
-  return max_sample_rate;
+  return downsamp ? max_sample_rate/downsample_factor : max_sample_rate;
 }
 
-uint32_t V172X_BoardParams::GetPostNSamps() const
+uint32_t V172X_BoardParams::GetPostNSamps(bool downsamp) const
 {
-  return (uint32_t)(post_trigger_time_us * GetSampleRate());
+  return (uint32_t)(post_trigger_time_us * GetSampleRate(downsamp));
 }
 
-uint32_t V172X_BoardParams::GetPreNSamps() const
+uint32_t V172X_BoardParams::GetPreNSamps(bool downsamp) const
 {
-  return (uint32_t)(pre_trigger_time_us * GetSampleRate());
+  return (uint32_t)(pre_trigger_time_us * GetSampleRate(downsamp));
 }
 
-uint32_t V172X_BoardParams::GetTotalNSamps() const
+uint32_t V172X_BoardParams::GetTotalNSamps(bool downsamp) const
 {
   uint32_t total_nsamps = (uint32_t)
-    (( pre_trigger_time_us + post_trigger_time_us ) * GetSampleRate());
+    (( pre_trigger_time_us + post_trigger_time_us ) * GetSampleRate(downsamp));
   while( total_nsamps % (4/bytes_per_sample)) total_nsamps++;
   //if(total_nsamps%2) total_nsamps++;
   return total_nsamps;
@@ -248,7 +248,8 @@ uint32_t V172X_BoardParams::GetBufferCode() const
     max_samples = (int)(Mbyte * (mem_size == 0x02 ? 1.835 : 14.4 ));
   else if(board_type == V1730)
     max_samples = ( mem_size == 1 ? 640*1024 : (int)(5.12*Mbyte));
-  uint32_t buffer_code = (uint32_t)floor(log2(max_samples / GetTotalNSamps()));
+  uint32_t buffer_code = (uint32_t)floor(log2(max_samples / 
+					      GetTotalNSamps(false)));
   if(buffer_code > 0xA)
     buffer_code = 0xA;
   return buffer_code;
@@ -257,10 +258,10 @@ uint32_t V172X_BoardParams::GetBufferCode() const
 uint32_t V172X_BoardParams::GetCustomSizeSetting() const
 {
   if(board_type == V1751)
-    return GetTotalNSamps()/stupid_size_factor;
+    return GetTotalNSamps(false)/stupid_size_factor;
   else if(board_type == V1730)
-    return GetTotalNSamps() / 10;
-  return GetTotalNSamps()*bytes_per_sample/
+    return GetTotalNSamps(false) / 10;
+  return GetTotalNSamps(false)*bytes_per_sample/
     ( sizeof(uint32_t) * stupid_size_factor);
 }
 
@@ -268,15 +269,15 @@ uint32_t V172X_BoardParams::GetPostTriggerSetting() const
 {
   const int latency = 10;
   if(board_type == V1751)
-    return GetPostNSamps() / 16 - latency;
-  return GetPostNSamps()/(2*stupid_size_factor) - latency;
+    return GetPostNSamps(false) / 16 - latency;
+  return GetPostNSamps(false)/(2*stupid_size_factor) - latency;
   
 }
 
 //return the index corresponding to the sample at the trigger time
-int V172X_BoardParams::GetTriggerIndex() const
+int V172X_BoardParams::GetTriggerIndex(bool downsamp) const
 {
-  return GetPreNSamps();
+  return GetPreNSamps(downsamp);
 }
 
 uint64_t V172X_BoardParams::GetTimestampRange() const
@@ -307,7 +308,7 @@ int V172X_Params::GetEnabledChannels()
 }
 
 //Get the max expected event size in bytes
-int V172X_Params::GetEventSize()
+int V172X_Params::GetEventSize(bool downsamp)
 {
   enabled_boards = 0;
   enabled_channels = 0;
@@ -320,7 +321,7 @@ int V172X_Params::GetEventSize()
     for(int j =0; j<board[i].nchans; j++){
       if(board[i].channel[j].enabled){
 	enabled_channels++;
-	board[i].event_size_bytes += ( board[i].GetTotalNSamps() * 
+	board[i].event_size_bytes += ( board[i].GetTotalNSamps(downsamp) * 
 				       board[i].bytes_per_sample )
 	  + (board[i].zs_type == ZLE ? 8 : 0 );
       }
