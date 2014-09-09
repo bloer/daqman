@@ -438,9 +438,14 @@ int V172X_Daq::Update()
     */
     Message(DEBUG)<<"The expected event size is "<<_params.GetEventSize(false)
 		  <<" bytes."<<std::endl;   
+    runinfo* info = EventHandler::GetInstance()->GetRunInfo();
+    if(info){
+      info->SetMetadata("nchans",_params.GetEnabledChannels());
+      info->SetMetadata("event_size",_params.event_size_bytes);
+    }
+
     //wait 2 seconds for DC offset levels to adjust
-    time_t now = time(0);
-    while(time(0) - now < 2) {}
+    boost::this_thread::sleep(boost::posix_time::millisec(1500));
   }
   catch(...){ 
     return -3;
