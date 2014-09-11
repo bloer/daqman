@@ -96,6 +96,10 @@ V172X_BoardParams::V172X_BoardParams() :
 		    "Does this board repeat the trigger-in to trigger-out?");
   RegisterParameter("local_trigger_coincidence",local_trigger_coincidence = 0,
 		    "Number of channels after the first necessary to generate a trigger");
+  RegisterParameter("coincidence_window_ticks", coincidence_window_ticks=0,
+		    "Width of coinidence window in clockticks (usually 8ns). Note this will delay the trigger time!");
+  RegisterParameter("trigout_coincidence",trigout_coincidence = 0,
+		    "Majority level for trigger out formation");
   RegisterParameter("pre_trigger_time_us", pre_trigger_time_us = 1,
 		    "Length of buffer time to to store before the trigger");
   RegisterParameter("post_trigger_time_us", post_trigger_time_us = 30,

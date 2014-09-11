@@ -34,6 +34,7 @@ enum VME_REGISTERS{
   VME_ChStatus =           0x1088,
   VME_ChBuffersFull =      0x1094,
   VME_ChDAC =              0x1098,
+  VME_ChADCCalib =         0x109C,
   VME_ChannelsConfig =     0x8000,
   VME_BufferCode =         0x800C,
   VME_BufferFree =         0x8010,
@@ -296,11 +297,8 @@ int V172X_Daq::Update()
       for(int i=0; i<board.nchans; i++){
 	V172X_ChannelParams& channel = board.channel[i];
 	channel_mask += (1<<i) * channel.enabled;
-	uint32_t trigmaskbit = (1<<i);
-	if(board.board_type == V1730)
-	  trigmaskbit = (1<<(i/2));
-	trigger_mask |= (trigmaskbit * channel.enable_trigger_source);
-	trigger_out_mask |= (trigmaskbit * channel.enable_trigger_out);
+	trigger_mask += (1<<i) * channel.enable_trigger_source;
+	trigger_out_mask += (1<<i) * channel.enable_trigger_out;
 	//write the per-channel stuff
 	//Zero suppression threshold
 	uint32_t zs_thresh = (1<<31) * channel.zs_polarity +
@@ -386,21 +384,13 @@ int V172X_Daq::Update()
       //trigger mask
       if(board.local_trigger_coincidence >7) 
 	board.local_trigger_coincidence = 7;
-      if(board.coincidence_window_ticks > 0xF)
-	board.coincidence_window_ticks = 0xF;
       trigger_mask += (1<<31) * board.enable_software_trigger 
 	+ (1<<30) * board.enable_external_trigger
-	+ (1<<24) * board.local_trigger_coincidence
-	+ (1<<20) * board.coincidence_window_ticks;
+	+ (1<<24) * board.local_trigger_coincidence;
       WriteDigitizerRegister(VME_TrigSourceMask, trigger_mask, handle);
       //trigger out mask
       trigger_out_mask += (1<<31) * board.enable_software_trigger_out +
 	(1<<30) * board.enable_external_trigger_out;
-      if(board.trigout_coincidence > 0){
-	if(board.trigout_coincidence > 7)
-	  board.trigout_coincidence = 7;
-	trigger_out_mask += (2<<8) + (board.trigout_coincidence << 10);
-      }
       WriteDigitizerRegister(VME_TrigOutMask, trigger_out_mask, handle);
       //post trigger setting
       
@@ -449,12 +439,22 @@ int V172X_Daq::Update()
     */
     Message(DEBUG)<<"The expected event size is "<<_params.GetEventSize(false)
 		  <<" bytes."<<std::endl;   
+<<<<<<< HEAD
+    
+    runinfo* info = EventHandler::GetInstance()->GetRunInfo();
+    if(info){
+      info->SetMetadata("nchans",_params.GetEnabledChannels());
+      info->SetMetadata("event_size",_params.GetEventSize());
+    }
+    
+=======
     runinfo* info = EventHandler::GetInstance()->GetRunInfo();
     if(info){
       info->SetMetadata("nchans",_params.GetEnabledChannels());
       info->SetMetadata("event_size",_params.event_size_bytes);
     }
 
+>>>>>>> develop
     //wait 2 seconds for DC offset levels to adjust
     boost::this_thread::sleep(boost::posix_time::millisec(1500));
   }

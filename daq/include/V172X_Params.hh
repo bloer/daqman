@@ -128,7 +128,9 @@ public:
   bool enable_software_trigger_out;    ///< do soft triggers generate sig out?
   bool enable_external_trigger;        ///< do we allow external triggers?
   bool enable_external_trigger_out;    ///< do we repeat external trigs out?
-  uint16_t local_trigger_coincidence;  ///< need n+1 channels to trigger locally
+  uint32_t local_trigger_coincidence;  ///< need n+1 channels to trigger locally
+  uint32_t coincidence_window_ticks;   ///< width of coincidence in clocks
+  uint32_t trigout_coincidence;        ///< majority level for trigger out
   double pre_trigger_time_us;          ///< pulse length to store before trigger
   double post_trigger_time_us;         ///< pulse length to store after trigger
   uint32_t downsample_factor;          ///< NOT USED; kept for compaitibility 
