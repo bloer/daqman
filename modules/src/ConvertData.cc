@@ -36,7 +36,7 @@ int ConvertData::Initialize()
   if(!_v172X_params) 
     _v172X_params = dynamic_cast<V172X_Params*>
       (config->GetParameter(V172X_Params().GetDefaultKey()));
-  else{
+  if(!_v172X_params){
     //if that didn't work, we need to load it
     bool err = 0;
     if(config->GetSavedCfgFile() != "")
