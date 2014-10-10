@@ -62,9 +62,9 @@ EventHandler::EventHandler() :
 			   EnableModule(false),"module");
   config->AddCommandSwitch(' ',"list-modules","list the available modules",
 			   ListModules);
-  /*config->AddCommandSwitch(' ',"no-db","Skip attempts to access database",
+  config->AddCommandSwitch(' ',"no-db","Skip attempts to access database",
 			   CommandSwitch::SetValue<bool>(_access_database,false)
-			   ); */
+			   ); 
   
 }
 //Copy, assignment constructors not provided
