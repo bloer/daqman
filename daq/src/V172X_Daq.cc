@@ -373,6 +373,7 @@ int V172X_Daq::CalibrateBaselines(int boardnum)
      <<"\n";
     delete interp[ch];
   }
+  CAEN_DGTZ_FreeReadoutBuffer(&buffer);
   CAEN_DGTZ_ClearData(handle);
   return calibmask;
 }
