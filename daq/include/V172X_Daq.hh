@@ -44,6 +44,9 @@ public:
   /// Initialize parameters for a single board
   int InitializeBoard(int boardnum);
   
+  /// Attempt to calibrate the dc offsets to find set baseline
+  int CalibrateBaselines(int boardnum);
+  
   //---------defined in V172X_Daq_Helpers.cc-------
   /*The following helper functions all throw a uint32_t exception to denote 
     the address which generated it, and set the eStatus enum of the class 

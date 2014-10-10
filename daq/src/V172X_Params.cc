@@ -48,6 +48,14 @@ V172X_ChannelParams::V172X_ChannelParams() :
   
   RegisterParameter("label",label="x", 
 		    "A descriptive label for the channel");
+  RegisterParameter("calibrate_baseline",calibrate_baseline = false,
+		    "Adjust DC offset values to target baseline");
+  RegisterParameter("target_baseline",target_baseline = 100,
+		    "desired baseline after dc offset adjust");
+  RegisterParameter("allowed_baseline_offset",allowed_baseline_offset = 1,
+		    "max allowable deviation from target baseline");
+  RegisterParameter("final_baseline",final_baseline = -1,
+		    "best baseline value found after calibration");
 }
 
 V172X_BoardParams::V172X_BoardParams() : 
@@ -148,6 +156,16 @@ V172X_Params::V172X_Params() : ParameterList("V172X_Params")
 		    "Do we automatically generate a trigger if timeout occurrs?");
   RegisterParameter("vme_bridge_link", vme_bridge_link = 0,
 		    "VME bridge optical link number");
+  
+  RegisterParameter("basecalib_samples",basecalib_samples = 100,
+		    "samples per trigger for baseline estimation");
+  RegisterParameter("basecalib_triggers",basecalib_triggers = 100,
+		    "events per baseline estimation");
+  RegisterParameter("basecalib_max_tries",basecalib_max_tries = 10,
+		    "Maximum attempta to get baseline before giving up");
+  
+  
+  
   //RegisterParameter("event_size_bytes", event_size_bytes = 0);
   //RegisterParameter("enabled_boards", enabled_boards = 0);
   //RegisterParameter("enabled_channels", enabled_channels = 0);

@@ -92,6 +92,10 @@ public:
   uint32_t zs_pre_samps;         ///< number of samples to save before zle block
   uint32_t zs_post_samps;        ///< number of samples to save after ZLE block
   std::string label;             ///< descriptive label for this channel
+  bool calibrate_baseline;       ///< Adjust DC offset to hit desired baseline
+  double target_baseline;        ///< desired baseline afer dc offset adjust
+  double allowed_baseline_offset;///< allowable deviation from target baseline
+  double final_baseline;         ///< best value after calibration
 };
 
 /** @class V172X_BoardParams
@@ -198,6 +202,10 @@ public:
   int enabled_boards;             ///< number of boards enabled in this run
   int enabled_channels;           ///< number of channels enabled in this run 
   int vme_bridge_link;		  ///< the caenvmelib link number for the VME bridge
+  uint32_t basecalib_samples;          ///< samples per trigger for baseline calib
+  uint32_t basecalib_triggers;         ///< events per baseline estimation
+  int basecalib_max_tries;        ///< max attempts before giving up calibration
+
   static const int nboards = N_V172X_BOARDS; ///< max number of boards allowed
   V172X_BoardParams board[nboards];          ///< parameters for each board
   //utility functions

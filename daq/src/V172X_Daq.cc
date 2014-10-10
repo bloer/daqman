@@ -13,6 +13,7 @@ which inherits from the WARP_VetoDAQ class.
 #include "Message.hh"
 #include "ConfigHandler.hh"
 #include "EventHandler.hh"
+#include "TGraph.h"
 #include <string>
 #include <time.h>
 #include <bitset>
@@ -249,6 +250,134 @@ int V172X_Daq::waitforstable(int32_t handle, int channel)
   return 0;
 }
 
+int V172X_Daq::CalibrateBaselines(int boardnum)
+{
+  V172X_BoardParams& board = _params.board[boardnum];
+  uint32_t calibmask = 0;
+  std::map<int,TGraph*> interp;
+  for(int ch=0; ch<board.nchans; ++ch){
+    if(board.channel[ch].calibrate_baseline){
+      calibmask |= (1<<ch);
+      interp[ch] = new TGraph(_params.basecalib_max_tries);
+      board.channel[ch].dc_offset = 0xffff*(1.-board.channel[ch].target_baseline/
+					    pow(2,board.sample_bits));
+    }
+  }
+  if(calibmask == 0) //nothing to do
+    return 0;
+  
+  Message(INFO)<<"Calibrating baselines for board "<<boardnum<<", please wait\n";
+  
+  //set the nsamps, trigger, and enable masks
+  int handle = _handle_board[boardnum];
+  CAEN_DGTZ_ClearData(handle);
+  WriteDigitizerRegister(VME_TrigSourceMask,(1<<31),handle); //SW trigger only
+  WriteDigitizerRegister(VME_TrigOutMask,0,handle); //no trigger outs
+  WriteDigitizerRegister(VME_ChannelMask,calibmask,handle);
+  CAEN_DGTZ_SetRecordLength(handle,_params.basecalib_samples);
+  CAEN_DGTZ_GetRecordLength(handle,&(_params.basecalib_samples));
+  CAEN_DGTZ_SetAcquisitionMode(handle,CAEN_DGTZ_SW_CONTROLLED);
+  CAEN_DGTZ_SetMaxNumEventsBLT(handle,1);
+  int tries = 0;
+  char* buffer = 0;
+  uint32_t bufsize = 0;
+  CAEN_DGTZ_MallocReadoutBuffer(handle,&buffer, &bufsize);
+
+  while(tries < _params.basecalib_max_tries && calibmask){
+    Message(DEBUG)<<"Attempt "<<tries<<" to calibrate board "<<boardnum<<" baselines\n";
+    for(int ch=0; ch<board.nchans; ++ch){
+      if(calibmask & (1<<ch)){
+	CAEN_DGTZ_SetChannelDCOffset(handle,ch,board.channel[ch].dc_offset);
+	waitforstable(handle,ch);
+	interp[ch]->SetPoint(tries,0,board.channel[ch].dc_offset);
+      }
+    }
+    //wait until the board is ready to take data
+    boost::this_thread::sleep(boost::posix_time::millisec(1500));
+    uint32_t status = 0;
+    int count = 0;
+    while( !((status&0x100) && (status&0xc0)) ){
+      status = ReadDigitizerRegister(VME_AcquisitionStatus, handle);
+      if(count++ > 500){
+	Message(ERROR)<<"Unable to initialize board "<<boardnum<<" at address "
+		      <<std::hex<<board.address<<std::dec<<"\n";
+	return 1;
+      }
+    }
+      
+    CAEN_DGTZ_SWStartAcquisition(handle);
+    for(uint32_t trig=0; trig < _params.basecalib_triggers; ++trig){
+      CAEN_DGTZ_SendSWtrigger(handle);
+      while(CAEN_DGTZ_ReadData(handle,
+			       CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT,
+			       buffer,&bufsize) != 0){}
+      V172X_BoardData data((const unsigned char*)buffer);
+      for(int ch=0; ch<board.nchans; ++ch){
+	if(calibmask & (1<<ch)){
+	  double sum = 0;
+	  if(board.bytes_per_sample == 1)
+	    sum = std::accumulate((uint8_t*)data.channel_start[ch],
+				  (uint8_t*)data.channel_end[ch],0);
+	  else if(board.bytes_per_sample == 2)
+	    sum = std::accumulate((uint16_t*)data.channel_start[ch],
+				  (uint16_t*)data.channel_end[ch],0);
+	  else
+	    sum = std::accumulate((uint32_t*)data.channel_start[ch],
+				  (uint32_t*)data.channel_end[ch],0);
+	  interp[ch]->GetX()[tries] += sum/_params.basecalib_samples/
+	    _params.basecalib_triggers;
+	}
+      }
+    }
+    CAEN_DGTZ_SWStopAcquisition(handle);
+    //check the new baselines, see which channels need adjusting still
+    for(int ch=0; ch<board.nchans; ++ch){
+      if(calibmask & (1<<ch)){
+	V172X_ChannelParams& cpar = board.channel[ch];
+	cpar.final_baseline = interp[ch]->GetX()[tries];
+	Message(DEBUG2)<<ch<<" "<<cpar.dc_offset<<" "
+		       <<std::dec<<cpar.final_baseline<<"\n";
+	if(std::abs(cpar.final_baseline - cpar.target_baseline) < 
+	   cpar.allowed_baseline_offset){
+	  //we're done with this channel!
+	  calibmask &= ~(1<<ch);
+	}
+	else{
+	  //prevent being stuck at edge
+	  if(cpar.final_baseline <1)
+	    cpar.dc_offset -= 0x1000;
+	  else if(cpar.final_baseline > pow(2,board.sample_bits)-1)
+	    cpar.dc_offset += 0x1000;
+	  if(tries >1)
+	    cpar.dc_offset = interp[ch]->Eval(cpar.target_baseline);
+	  else{
+	    //need to make some guesses here
+	    double ratio = pow(2,16.-board.sample_bits);
+	    double newval = 1.*cpar.dc_offset - 
+	      ratio*(cpar.target_baseline - cpar.final_baseline);
+	    if(newval > 0xffff) newval = 0xffff;
+	    if(newval < 0) newval = 0;
+	    cpar.dc_offset = newval;
+	  }
+	}
+      }
+    }
+    ++tries;
+  }
+  Message m(INFO);
+  m<<"Final baselines for board "<<boardnum<<":\nCh\tDCval\tBaseline\n";
+  for(int ch=0; ch < board.nchans; ++ch){
+    if(!board.channel[ch].calibrate_baseline)
+      continue;
+    m<<ch<<"\t"<<board.channel[ch].dc_offset<<"\t"<<board.channel[ch].final_baseline
+     <<"\n";
+    delete interp[ch];
+  }
+  CAEN_DGTZ_ClearData(handle);
+  return calibmask;
+}
+
+
 int V172X_Daq::Update()
 {
   if(!_initialized){
@@ -264,6 +393,8 @@ int V172X_Daq::Update()
   try{
     for(int iboard=0; iboard < _params.nboards; iboard++){
       V172X_BoardParams& board = _params.board[iboard];
+      if(!board.enabled) 
+	continue;
       if(board.downsample_factor < 1)
 	board.downsample_factor=1; 
       if(board.zs_type != NONE){
@@ -271,9 +402,11 @@ int V172X_Daq::Update()
 		     <<"zero suppressed data\n";
 	board.downsample_factor = 1;
       }
-	
-      if(!board.enabled) 
-	continue;
+      
+      //calibrate dc offsets first!
+      int ret = CalibrateBaselines(iboard);
+      if(ret) return ret;
+      
       int handle = _handle_board[iboard];
       //determine the trigger acquisition window for the database
       //WARNING: Assumes it is the same for all boards!!!
