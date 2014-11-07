@@ -869,7 +869,7 @@ void V172X_Daq::DataAcquisitionLoop()
 	//instead, we check the actual event
 	long ev_size = (*((uint32_t*)(buffer+data_transferred)) & 
 			     0x0FFFFFFF) * sizeof(uint32_t);
-	if(std::abs(ev_size - this_dl_size) > 5){
+	if(std::abs(ev_size - (long)this_dl_size) > 5){
 	  Message(WARNING)<<"Event size does not match download count!\n\t"
 			  <<"Event size: "<<ev_size<<"; download size: "
 			  <<this_dl_size<<"; requested download "
