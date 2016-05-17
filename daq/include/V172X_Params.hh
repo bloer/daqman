@@ -36,8 +36,8 @@ enum TRIGGER_POLARITY {TP_RISING = 0, TP_FALLING = 1};
 /** @enum BOARD_TYPE
     @brief defines the available models of V172X digitzer
 */
-enum BOARD_TYPE { V1724 = 0, V1721 = 1, V1720 = 3 , V1751 = 5, V1730 = 11, 
-		  OTHER = 256};
+enum BOARD_TYPE { V1724 = 0, V1721 = 1, V1731 = 2, V1720 = 3 , V1751 = 5, 
+		  V1730 = 11, OTHER = 256};
 
 /** @enum TRGOUT_MODE
     @brief defines available settings for the TRGOUT front panel connector

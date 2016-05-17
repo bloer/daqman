@@ -200,8 +200,9 @@ int V172X_BoardParams::UpdateBoardSpecificVariables()
     stupid_size_factor = 2;
     ns_per_clocktick = 8;
     break;
+  case V1731:
   case V1721:
-     max_sample_rate = 1000;
+    max_sample_rate = 500;
     sample_bits = 8;
     bytes_per_sample = 1;
     v_full_scale = 2;
@@ -390,6 +391,8 @@ std::ostream& operator<<(std::ostream& out, const BOARD_TYPE& type)
     return out<<"V1720";
   else if (type == V1721)
     return out<<"V1721";
+  else if (type == V1731)
+    return out<<"V1731";
   else if (type == V1751)
     return out<<"V1751";
   else 
@@ -458,6 +461,8 @@ std::istream& operator>>(std::istream& in, BOARD_TYPE& type)
     type = V1720;
   else if (temp == "V1721")
     type = V1721;
+  else if (temp == "V1731")
+    type = V1731;
   else if (temp == "V1751")
     type = V1751;
   else if (temp == "OTHER")
