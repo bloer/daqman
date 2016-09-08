@@ -12,9 +12,13 @@
 #include <iostream>
 #include <functional>
 #include <algorithm>
+#include <numeric>
 
 BaselineFinder::BaselineFinder():
-  ChannelModule(GetDefaultName(), "Find the baseline (zero) of the channel in the samples read before the trigger")
+  ChannelModule(GetDefaultName(), "Find the baseline (zero) of the channel in the samples read before the trigger"),
+  fixed_params("fixed_params","Parameters for fixed baseline search mode"),
+  interp_params("interp_params","Parameters for linear interpolation mode"),
+  drifting_params("drifting params","Parameters for drifting baseline search")
 {
   AddDependency<ConvertData>();
   
@@ -23,50 +27,62 @@ BaselineFinder::BaselineFinder():
 		    "Search for a flat baseline in pre-trigger window, otherwise search for a drifting baseline");
   RegisterParameter("signal_begin_time", signal_begin_time = 0,
 		    "Search for baseline before this time [us] ");
-
+  
   //parameters for fixed baseline
-  RegisterParameter("segment_samps", segment_samps = 15,
+  RegisterParameter("fixed_params",fixed_params);
+
+  fixed_params.RegisterParameter("segment_samps", segment_samps = 15,
 		    "Samples in each baseline segment");
-  RegisterParameter("min_valid_samps", min_valid_samps = 50,
+  fixed_params.RegisterParameter("min_valid_samps", min_valid_samps = 50,
 		    "Minimum samples for a baseline to be valid");
-  RegisterParameter("max_sigma", max_sigma = 1.2,
+  fixed_params.RegisterParameter("max_sigma", max_sigma = 1.2,
 		    "Maximum standard deviation for a baseline segment to be accepted");
-  RegisterParameter("max_sigma_diff", max_sigma_diff = 1,
+  fixed_params.RegisterParameter("max_sigma_diff", max_sigma_diff = 1,
 		    "Maximum difference between baseline sigma and the sigma of a new valid segment");
-  RegisterParameter("max_mean_diff", max_mean_diff = 1,
+  fixed_params.RegisterParameter("max_mean_diff", max_mean_diff = 1,
 		    "Maximum difference between baseline mean and the mean of a new valid segment");
 	
   //parameters for linear baseline with few baseline points
-  RegisterParameter("linear_interpolation", linear_interpolation = false,
-					"Compute further baseline estimates throughout trigger window and perform interpolation");
-  RegisterParameter("avg_samps", avg_samps = 1000,
+  fixed_params.RegisterParameter("linear_interpolation", 
+				 linear_interpolation = false,
+				 "Compute further baseline estimates throughout trigger window and perform interpolation");
+  fixed_params.RegisterParameter("interp_params",interp_params);
+  interp_params.RegisterParameter("avg_samps", avg_samps = 1000,
 					"Number of contiguous samples to use to perform new baseline estimate");
-  RegisterParameter("max_sigma_factor", max_sigma_factor = 3,
+  interp_params.RegisterParameter("max_sigma_factor", max_sigma_factor = 3,
 					"Samples withing this number of flat baseline sigmas will be considered for baseline estimate");
-  RegisterParameter("pulse_threshold", pulse_threshold = 4,
+  interp_params.RegisterParameter("pulse_threshold", pulse_threshold = 4,
 					"Threshold (in number of max_sigmas) to consider a pulse and ignore cooldown samples from baseline estimate");
-  RegisterParameter("cooldown", cooldown = 2050,
+  interp_params.RegisterParameter("cooldown", cooldown = 2050,
 					"Total number of samples around pulses to ignore for baseline estimate");
-  RegisterParameter("pre_cooldown", pre_cooldown = 50,
+  interp_params.RegisterParameter("pre_cooldown", pre_cooldown = 50,
 					"Number of samples before pulse to ignore for baseline estimate");
 
   //parameters for drifting baseline
-  RegisterParameter("max_amplitude", max_amplitude = 5,
+  RegisterParameter("drifting_params",drifting_params);
+  drifting_params.RegisterParameter("max_amplitude", max_amplitude = 5,
 		    "Max amplitude for sample to be considered in baseline");
-  RegisterParameter("max_sum_amplitude", max_sum_amplitude = 0.2,
+  drifting_params.RegisterParameter("max_return_amplitude", max_return_amplitude = 5,
+		    "Max amplitude for sample to be considered in baseline after an excluded region");
+  drifting_params.RegisterParameter("max_sum_amplitude", 
+				    max_sum_amplitude = 0.2,
 		    "max_amplitude for sum channel");
-  RegisterParameter("pre_samps", pre_samps = 5,
+  drifting_params.RegisterParameter("pre_samps", pre_samps = 5,
 		    "Samples before to include in moving average");
-  RegisterParameter("post_samps", post_samps = 5,
+  drifting_params.RegisterParameter("post_samps", post_samps = 5,
 		    "Samples after to include in average");
-  RegisterParameter("laserwindow_begin_time", laserwindow_begin_time = -999,
+  drifting_params.RegisterParameter("laserwindow_begin_time", 
+				    laserwindow_begin_time = -999,
 		    "Specify the beginning time of a laser window.");		
-
-  RegisterParameter("laserwindow_end_time", laserwindow_end_time = -999,
-		    "Specify the ending time of a laser window.");				
-  RegisterParameter("laserwindow_freeze", laserwindow_freeze = true,
-		    "Specify whether to always interpolate the baseline in the laser window.");				
-  RegisterParameter("save_interpolations", save_interpolations = false, "Save identified interpolation regions as spe");
+  drifting_params.RegisterParameter("laserwindow_end_time", 
+				    laserwindow_end_time = -999,
+		    "Specify the ending time of a laser window.");	    
+  drifting_params.RegisterParameter("laserwindow_freeze", 
+				    laserwindow_freeze = false,
+   "Specify whether to always interpolate the baseline in the laser window.");
+  drifting_params.RegisterParameter("save_interpolations", 
+				    save_interpolations = false, 
+		     "Save identified interpolation regions as spe");
 }
 
 BaselineFinder::~BaselineFinder()
@@ -103,14 +119,20 @@ int BaselineFinder::DriftingBaseline(ChannelData* chdata)
   if(pre_trig_samp < 0) pre_trig_samp = pre_samps+post_samps;
   if(pre_trig_samp >= nsamps) pre_trig_samp = nsamps-1;
   double max_pre_trig = *std::max_element(wave,wave+pre_trig_samp);
+  double mean_pre_trig = std::accumulate(wave,wave+pre_trig_samp,0.) /
+    pre_trig_samp;
   if( std::abs(chdata->GetVerticalRange() - max_pre_trig ) < 0.01)
     baseline.saturated = true;
   //loop through the data, calculating a moving average as we go,
   //but only for samples < 2* max_amplitude away from max_pre_trig
   //until we find a good baseline
   double var = max_amplitude;
-  if(chdata->channel_id == ChannelData::CH_SUM)
+  double var2 = max_return_amplitude;
+  if(chdata->channel_id == ChannelData::CH_SUM){
     var = max_sum_amplitude;
+    var2 *= max_sum_amplitude / max_amplitude;
+  }
+  
   
   double sum = 0;
   int sum_samps = 0;
@@ -125,8 +147,14 @@ int BaselineFinder::DriftingBaseline(ChannelData* chdata)
     bool pass_amp = false;
     if(!baseline.found_baseline && max_pre_trig - wave[samp] < 2*var)
       pass_amp = true;
-    else if(baseline.found_baseline && std::abs(wave[samp]-moving_base)<var)
-      pass_amp = true;
+    //if(!baseline.found_baseline && std::abs(mean_pre_trig-wave[samp]) < var)
+    //pass_amp = true;
+    else if(baseline.found_baseline){
+      if(sum_samps > 0 && std::abs(wave[samp]-moving_base)<var)
+	pass_amp = true;
+      else if(sum_samps == 0 && std::abs(wave[samp]-moving_base)<var2)
+	pass_amp = true; 
+    }
     else if(samp>=laserwindow_begin_samp && samp <= laserwindow_end_samp)
       baseline.laserskip = true;
     if(laserwindow_freeze && samp>=laserwindow_begin_samp && samp <= laserwindow_end_samp ){

@@ -15,6 +15,7 @@
 class TFile;
 class TTree;
 class RootWriter;
+class runinfo;
 
 //utility classes
 /** @class BranchEnabler
@@ -63,7 +64,9 @@ public:
 		    bool enable=true);
   /// Disable a given branch in the stored tree
   void DisableBranch(const char* classname, const char* branchname);
-
+  
+  /// Construct a friend tree with metadata info
+  TTree* BuildMetadataTree(runinfo* info);
 private:
   void SaveConfig();
   std::string _filename;

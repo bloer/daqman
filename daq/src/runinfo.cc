@@ -15,6 +15,7 @@
 #include "TMacro.h"
 #include "TList.h"
 #include "TObjString.h"
+#include <algorithm>
 
 typedef runinfo::stringmap stringmap;
 typedef runinfo::stringvec stringvec;
@@ -34,7 +35,8 @@ public:
 };
 
 runinfo::runinfo(long id) : 
-  ParameterList("runinfo","metadata about daq runs")
+  ParameterList("runinfo","metadata about daq runs"),
+  TObject()
 {
   Init();
   runid = id;
@@ -116,6 +118,34 @@ int runinfo::LoadSavedInfo(TMacro* mac)
   }
   //if we get here, we should have been successful
   return 0;
+}
+
+struct SmapMerge{
+  stringmap& mymap;
+  SmapMerge(stringmap& amap) : mymap(amap) {}
+  void operator()(const std::pair<std::string,std::string>& it)
+  { mymap[it.first] = it.second; }
+};
+
+void runinfo::MergeMetadata(const runinfo* other, bool overwritedups)
+{
+  //first do the global metadata
+  const stringmap& othermap = other->metadata;
+  if(overwritedups)
+    std::for_each(othermap.begin(), othermap.end(), SmapMerge(metadata));
+  else
+    metadata.insert(othermap.begin(), othermap.end());
+  
+  //now the channel_metadata
+  std::map<int,stringmap>::const_iterator it=other->channel_metadata.begin();
+  for( ; it != other->channel_metadata.end(); ++it){
+    if(overwritedups)
+      std::for_each(it->second.begin(), it->second.end(), 
+		    SmapMerge(channel_metadata[it->first]));
+    else
+      channel_metadata[it->first].insert(it->second.begin(), it->second.end());
+  }
+
 }
 
 //////// Everything below here is related to the metadata fill dialogs /////

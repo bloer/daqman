@@ -21,6 +21,21 @@
  */
 namespace ParameterIOimpl{
   unsigned long ReadUnsignedInt(std::istream& in);
+
+  //lowest level needs meta template to give indent to parameters
+  //T inherits from VParameterNode:
+  template <class T> inline std::ostream& writeleaf(std::ostream& out, 
+						    const T& t,
+						    bool showhelp, int indent, 
+						    const boost::true_type&)
+  { return t.WriteTo(out, showhelp, indent); }
+  //T is not a VParameterNode: 
+  template <class T> inline std::ostream& writeleaf(std::ostream& out, 
+						    const T& t,
+						    bool showhelp, int indent, 
+						    const boost::false_type&)
+  { return out<<t; }
+  
   
   inline std::ostream& write(std::ostream& out, const VParameterNode& p,
 			     bool showhelp=false, int indent=0)
@@ -61,19 +76,6 @@ namespace ParameterIOimpl{
   
   
   
-  //lowest level needs meta template to give indent to parameters
-  //T inherits from VParameterNode:
-  template <class T> inline std::ostream& writeleaf(std::ostream& out, 
-						    const T& t,
-						    bool showhelp, int indent, 
-						    const boost::true_type&)
-  { return t.WriteTo(out, showhelp, indent); }
-  //T is not a VParameterNode: 
-  template <class T> inline std::ostream& writeleaf(std::ostream& out, 
-						    const T& t,
-						    bool showhelp, int indent, 
-						    const boost::false_type&)
-  { return out<<t; }
   
   
   //overload for bools and unsigned ints

@@ -15,27 +15,27 @@ Reader::Reader(const std::string& filename) :
   
   if(!OpenNextFile()){
     //look for a saved config file
-    if(ConfigHandler::GetInstance()->GetSavedCfgFile()==""){
-      std::string cfgfile = _current_file_name+".";
-      size_t pos;
-      bool cfgfound = false;
-      while( (pos = cfgfile.rfind('.')) != std::string::npos){
-	cfgfile.resize(pos);
-	std::string testfile = cfgfile+".cfg";
-	Message(DEBUG2)<<"Testing for config file with name "<<testfile<<"\n";
-	std::ifstream cfgfin(testfile.c_str());
-	if(cfgfin.is_open()){
-	  ConfigHandler::GetInstance()->SetSavedCfgFile(testfile);
-	  Message(DEBUG)<<"Found saved cfg file at "<<testfile<<"\n";
-	  cfgfound = true;
-	  break;
-	}
-	cfgfin.close();
+    
+    std::string cfgfile = _current_file_name+".";
+    size_t pos;
+    bool cfgfound = false;
+    while( (pos = cfgfile.rfind('.')) != std::string::npos){
+      cfgfile.resize(pos);
+      std::string testfile = cfgfile+".cfg";
+      Message(DEBUG2)<<"Testing for config file with name "<<testfile<<"\n";
+      std::ifstream cfgfin(testfile.c_str());
+      if(cfgfin.is_open()){
+	ConfigHandler::GetInstance()->SetSavedCfgFile(testfile);
+	Message(DEBUG)<<"Found saved cfg file at "<<testfile<<"\n";
+	cfgfound = true;
+	break;
       }
-      if(!cfgfound)
-	Message(WARNING)<<"Unable to locate configuration file for raw file "
-			<<filename<<"\n";
+      cfgfin.close();
     }
+    if(!cfgfound)
+      Message(WARNING)<<"Unable to locate configuration file for raw file "
+		      <<filename<<"\n";
+    
     //try to set the run id for processing modules
     if(_ghead.global_header_version>0)
       EventHandler::GetInstance()->SetRunID(_ghead.run_id);

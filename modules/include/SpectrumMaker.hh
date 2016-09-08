@@ -10,6 +10,7 @@ class TCanvas;
 class TTree;
 class TBranch;
 class TTreeFormula;
+class RootGraphix; 
 
 class SpectrumMaker : public BaseModule{
 public:
@@ -27,9 +28,9 @@ private:
   TCanvas* _canvas;       ///< Canvas on which the histogram is drawn
   TTree* _tree;           ///< Dummy tree used to parse variables
   TBranch* _branch;
-  TTreeFormula* _xform;
-  TTreeFormula* _yform;
-  TTreeFormula* _cutform;
+  //TTreeFormula* _xform;
+  //TTreeFormula* _yform;
+  //TTreeFormula* _cutform;
   std::string _draw_cmd;   ///<actual draw command passed to tree
 
   phrase _cut;            ///< cut determines whether to draw
@@ -47,6 +48,9 @@ private:
   phrase _ytitle;         ///< Title of y axis
   bool _logy;             ///< Should we use logararithmic y axis?  
   bool _logx;             ///< Should we use logarithmic x axis?
+  bool _logz;             ///< Should we use logarithmic z axis?
+
+  RootGraphix* _graphix;   ///< RootGraphix pointer
 };
   
 

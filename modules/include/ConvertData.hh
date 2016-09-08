@@ -40,13 +40,15 @@ private:
   int DecodeV172XData(const unsigned char* rawdata, uint32_t datasize, 
 		       EventDataPtr data);
   
-  uint64_t start_time;            ///< start time of the run
-  uint64_t previous_event_time;   ///< time at which the previous event occurred
+  uint64_t start_time;           ///< start time of the run
+  uint64_t previous_event_time;  ///< time at which the previous event occurred
   std::map<int,double> _offsets;   ///< software offset time in us
-  V172X_Params* _v172X_params;    ///< saved info for a v172x event
-  runinfo* _info;                ///< database information for this run
-  long _id_mismatches;           ///< Number of events with ID mismatch
-  bool _headers_only;            ///< Only process data headers, not the bulk
+  std::map<int,double> _spemeans;  ///< calibration constants copied for speedup
+  V172X_Params* _v172X_params;     ///< saved info for a v172x event
+  runinfo* _info;                  ///< database information for this run
+  long _id_mismatches;             ///< Number of events with ID mismatch
+  bool _headers_only;              ///< Only process data headers, not the bulk
+  std::set<int> _invert_channels;  ///< Invert converted data for a channel?
 public:
 
 };

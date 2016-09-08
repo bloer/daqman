@@ -25,20 +25,15 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
 		   bool force_regen = false,
 		   bool db_only = false)
 {
+  ConfigHandler::GetInstance()->SetSavedCfgFile("");
   cout<<"Processing runinfo for file "<<fname<<"..."<<endl;
   Reader reader(fname);
   if(!reader.IsOk())
     return;
   
- 
+  modules->AllowDatabaseAccess(false);
+  modules->Initialize();
   runinfo* info = modules->GetRunInfo();
-  if( ConfigHandler::GetInstance()->LoadParameterList(info) ){
-    //couldn't find it in saved config, so see if there's a default file
-    if(runinfo_file != ""){
-      cout<<"Loading runinfo from file "<<runinfo_file<<endl;
-      info->ReadFromFile(runinfo_file.c_str());
-    }
-  }
     
   if(comment != "") info->SetMetadata("comment",comment);
   if(force_regen || info->runid <=0 || 
@@ -46,8 +41,6 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
      info->events == 0 ){
     //process the first event
     //don't read from the database
-    modules->AllowDatabaseAccess(false);
-    modules->Initialize();
     RawEventPtr event = reader.GetEventWithIndex(0);
     if(modules->Process(event)){
       Message(ERROR)<<"Problem processing event from file "<<fname<<endl;
@@ -60,10 +53,11 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
       return;
     }
     
-    //Finalize erases the info, so copy it
-    info = new runinfo(*info);
-    modules->Finalize();
   }
+  //Finalize erases the info, so copy it
+  info = new runinfo(*info);
+  modules->Finalize();
+  
   //print the results
   if(!db_only){
     cout<<"Run information for file "<<fname<<":\n";
@@ -97,19 +91,22 @@ void PrintFileInfo(const char* fname, EventHandler* modules,
     }
   case 'Y':
   case 'y':
-    if(info->GetMetadata("comment") == ""){
-      cout<<"Please enter a comment for this run:"<<endl;
-      cin.ignore(100,'\n');
-      std::string c;
-      getline(cin, c);
-      info->SetMetadata("comment",c);
+    {
+      modules->AllowDatabaseAccess(true);
+      VDatabaseInterface* db = modules->GetDatabaseInterface();
+      if(db){
+	db->StoreRuninfo(info,VDatabaseInterface::UPSERT);
+      }
+      else{
+	cerr<<"Unable to insert run into database!"<<endl;
+      }
     }
-    //info->InsertIntoDatabase();
+    
     break;
   default:
     cerr<<"Something weird happened..."<<endl;
   }
-  
+  delete info;
     
 }
   
@@ -122,6 +119,8 @@ int main(int argc, char** argv)
   char query_answer=0;
   bool force_regen = false;
   bool db_only = false;
+  EventHandler* modules = EventHandler::GetInstance();
+  
   config->AddCommandSwitch('i',"info-file", "Read the default run info from <file> if not found in the run cfg file",
 			   CommandSwitch::DefaultRead<string>(runinfo_file),
 			   "file");
@@ -143,7 +142,6 @@ int main(int argc, char** argv)
     return -1;
   if(config->GetNCommandArgs()==0)
     config->PrintSwitches(true);
-  EventHandler* modules = EventHandler::GetInstance();
   modules->AddModule<ConvertData>();
   //cout<<"runid\tstarttime\tendtime\tevents\tlivetime\n";
   for(int i=1; i < argc; i++){

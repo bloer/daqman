@@ -57,6 +57,8 @@ private:
   std::string _autonamebase;
   int _compression;
   bool _save_config;
+  bool _write_database;
+
   std::ofstream _fout;
   std::ofstream _logout;
   void* _log_messenger;

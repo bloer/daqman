@@ -113,7 +113,11 @@ public:
   
   //search multiple paths for a config file
   std::string FindConfigFile(const std::string& fname);
- 
+
+  ///Should we hide all children of disabled lists when printing? 
+  void CollapseDisabledLists(bool collapse) { _collapse_disabled = collapse; }
+  
+  
 private:
   std::string _program_usage;      ///< String detailing how to use program
   std::string _program_description; ///< String describing the program
@@ -132,6 +136,7 @@ private:
   /// Copy constructor private
   ConfigHandler(const ConfigHandler& right) : ParameterList(),
 					      _switches(right._switches) {}
+  
   /// Copy constructor private
   ConfigHandler& operator=(const ConfigHandler& right)
   { _switches = right._switches; return *this; }
@@ -164,15 +169,15 @@ private:
       
       Holds the user-defined function to call when the switch is read
   */
-  template<class Action> class CommandSwitch : public VCommandSwitch{
+  template<class Action> class TCommandSwitch : public VCommandSwitch{
     Action do_action;
   public:
-    CommandSwitch(char short_name, const std::string& long_name,
+    TCommandSwitch(char short_name, const std::string& long_name,
 		  const std::string& help_text, const std::string& par,
 		  Action action) : 
       VCommandSwitch(short_name, long_name, help_text, par), 
       do_action(action) {}
-    virtual ~CommandSwitch() {}
+    virtual ~TCommandSwitch() {}
     virtual int Process(const char* arg);
   };
   
@@ -211,14 +216,14 @@ int ConfigHandler::AddCommandSwitch(char shortname,
       return -3;
     }
   }
-  _switches.insert(new CommandSwitch<Action>(shortname, longname, helptext,
+  _switches.insert(new TCommandSwitch<Action>(shortname, longname, helptext,
 					     parameter, action) );
   return 0;
 }
 
 
 template<class Action> inline
-int ConfigHandler::CommandSwitch<Action>::Process(const char* arg)
+int ConfigHandler::TCommandSwitch<Action>::Process(const char* arg)
 {
   return do_action(arg);
 }

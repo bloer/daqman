@@ -14,6 +14,8 @@ ConvertData::ConvertData():
 {
   RegisterParameter("offset_channels", _offsets, 
 		    "map of channelid:offset time to apply for analysis");
+  RegisterParameter("invert_channels",_invert_channels ,
+		    "Multiply the converted data by -1 for a channel?");
   _v172X_params = 0;
   _headers_only = false;
 }
@@ -34,22 +36,23 @@ int ConvertData::Initialize()
   if(!_v172X_params) 
     _v172X_params = dynamic_cast<V172X_Params*>
       (config->GetParameter(V172X_Params().GetDefaultKey()));
+  if(!_v172X_params){
     //if that didn't work, we need to load it
-  bool err = 0;
-  if(config->GetSavedCfgFile() != "")
-    err = config->LoadCreateParameterList(_v172X_params);
-  if(_v172X_params){
-    Message(DEBUG)<<"Number of V172X boards in this run: "
-		  <<_v172X_params->GetEnabledBoards()<<"\n";
-    //make sure all the per-board params are set
-    for(int i=0; i<_v172X_params->GetEnabledBoards(); i++){
-      V172X_BoardParams& board = _v172X_params->board[i];
-      board.UpdateBoardSpecificVariables();
+    bool err = 0;
+    if(config->GetSavedCfgFile() != "")
+      err = config->LoadCreateParameterList(_v172X_params);
+    if(_v172X_params){
+      Message(DEBUG)<<"Number of V172X boards in this run: "
+		    <<_v172X_params->GetEnabledBoards()<<"\n";
+      //make sure all the per-board params are set
+      for(int i=0; i<_v172X_params->GetEnabledBoards(); i++){
+	V172X_BoardParams& board = _v172X_params->board[i];
+	board.UpdateBoardSpecificVariables();
+      }
+      //make sure some intermediate values are set
+      _v172X_params->GetEventSize();
     }
-    //make sure some intermediate values are set
-    _v172X_params->GetEventSize();
   }
-  
   
   if(!_v172X_params){
      Message(ERROR)<<"Unable to load saved configuration information!\n";
@@ -57,7 +60,14 @@ int ConvertData::Initialize()
   }
   
   _info = EventHandler::GetInstance()->GetRunInfo();
-  
+  //pre-fill the calibration map
+  std::map<int,runinfo::stringmap>::iterator it;
+  for(it = _info->channel_metadata.begin(); it != _info->channel_metadata.end();
+      ++it){
+    if((it->second).count("spe_mean"))
+      _spemeans[it->first] = atof((it->second)["spe_mean"].c_str());
+  }
+ 
   return 0;
 }
 
@@ -70,6 +80,18 @@ int ConvertData::Finalize()
   }
   return 0;
 }
+
+class InvertData{
+private:
+  double _max, _min;
+public:
+  InvertData(double max, double min=0) : _max(max), _min(min) {}
+  double operator()(double a){ return _max - (a-_min); }
+};
+
+static double invert(double a){ return -a; }
+
+
 
 const uint64_t ns_per_s = 1000000000;
 int ConvertData::Process(EventPtr event)
@@ -110,6 +132,10 @@ int ConvertData::Process(EventPtr event)
       {
 	ChannelData& chdata = data->channels[ch];
 	double* wave = chdata.GetWaveform();
+	if(_invert_channels.count(chdata.channel_id) )
+	  std::transform(wave, wave+chdata.nsamps, wave,
+			 InvertData(chdata.GetVerticalRange()) );
+	
 	double* max_samp = std::max_element(wave, wave+chdata.nsamps);
 	double* min_samp = std::min_element(wave, wave+chdata.nsamps);
 	//data is saturated if it hit 0 or maximum range
@@ -122,14 +148,15 @@ int ConvertData::Process(EventPtr event)
 	chdata.min_time = chdata.SampleToTime(min_samp - wave);
 	//find the single photoelectron peak for this channel
 	
-	int chinfo=0;
-	//const RunDB::runinfo::channelinfo* chinfo = 
-	//_info->GetChannelInfo(chdata.channel_id);
-	if(chinfo)
-	  chdata.spe_mean = 1;//chinfo->spe_mean;
-	else
-	  {
-	    chdata.spe_mean = 1;
+	chdata.spe_mean = _spemeans[chdata.channel_id];
+	if(chdata.spe_mean == 0){
+	  //see if we haven't got it from calibration yet
+	  chdata.spe_mean = _spemeans[chdata.channel_id] = 
+	    _info->GetValueChannelMetadata(chdata.channel_id,"spe_mean",0);
+	  
+	  //if still 0, see if we need to throw an error
+	  if(chdata.spe_mean == 0){
+	    chdata.spe_mean = _spemeans[chdata.channel_id] = 1;
 	    bool fail = EventHandler::GetInstance()->GetFailOnBadCal();
 	    if(fail){
 	      Message(ERROR)<<"No calibration info for channel "
@@ -138,6 +165,7 @@ int ConvertData::Process(EventPtr event)
 	      return -1;
 	    }
 	  }
+	}
 
 	// get the PMT information for this channel
 	//chdata.pmt.Load(_cpinfo->pmts[chdata.channel_id]);
@@ -166,6 +194,7 @@ int ConvertData::Process(EventPtr event)
   */
   return 0;
 }
+
 
 int ConvertData::DecodeV172XData(const unsigned char* rawdata, 
 				  uint32_t datasize, 
@@ -323,6 +352,7 @@ int ConvertData::DecodeV172XData(const unsigned char* rawdata,
 		     wave[chdata.unsuppressed_regions.back().second-1] );
 	}
       }// end check for zero suppressed data
+      
       chdata.nsamps = chdata.waveform.size();
     }
   }

@@ -84,8 +84,12 @@ public:
 					      const W& write,
 					      const std::string& helptext="");
   /// Get a subparameter by name
-  VParameterNode* const GetParameter(const std::string& key);
+  const VParameterNode* GetParameter(const std::string& key) const;
+  VParameterNode* GetParameter(const std::string& key);
 protected:
+  /// hide disabled nodes on ostream output
+  static bool _collapse_disabled;
+  
   /// map of subparameters and their names
   typedef std::map<std::string, VParameterNode*> ParMap;
   ParMap _parameters;   ///< all registered subparameters

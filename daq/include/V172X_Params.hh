@@ -36,7 +36,13 @@ enum TRIGGER_POLARITY {TP_RISING = 0, TP_FALLING = 1};
 /** @enum BOARD_TYPE
     @brief defines the available models of V172X digitzer
 */
-enum BOARD_TYPE { V1724 = 0, V1721 = 1, V1720 = 3 , V1751 = 5, OTHER = 256};
+enum BOARD_TYPE { V1724 = 0, V1721 = 1, V1731 = 2, V1720 = 3 , V1751 = 5, 
+		  V1730 = 11, OTHER = 256};
+
+/** @enum TRGOUT_MODE
+    @brief defines available settings for the TRGOUT front panel connector
+*/
+enum TRGOUT_MODE { TRIGGER, BUSY};
 
 //need iostream operators for all enums
 /// SIGNAL_LOGIC ostream overload
@@ -59,6 +65,10 @@ std::ostream& operator<<(std::ostream& out, const BOARD_TYPE& type);
 /// BOARD_TYPE istream overload
 std::istream& operator>>(std::istream& in, BOARD_TYPE &type);
 
+/// TRGOUT_MODE ostream overload
+std::ostream& operator<<(std::ostream& out, const TRGOUT_MODE& m);
+/// TRGOUT_MODE istream overload
+std::istream& operator>>(std::istream& in, TRGOUT_MODE& m);
 
 /** @class V172X_ChannelParams
     @brief parameter list for each channel on a V172X digitizer
@@ -82,6 +92,10 @@ public:
   uint32_t zs_pre_samps;         ///< number of samples to save before zle block
   uint32_t zs_post_samps;        ///< number of samples to save after ZLE block
   std::string label;             ///< descriptive label for this channel
+  bool calibrate_baseline;       ///< Adjust DC offset to hit desired baseline
+  double target_baseline;        ///< desired baseline afer dc offset adjust
+  double allowed_baseline_offset;///< allowable deviation from target baseline
+  double final_baseline;         ///< best value after calibration
 };
 
 /** @class V172X_BoardParams
@@ -118,16 +132,20 @@ public:
   bool enable_software_trigger_out;    ///< do soft triggers generate sig out?
   bool enable_external_trigger;        ///< do we allow external triggers?
   bool enable_external_trigger_out;    ///< do we repeat external trigs out?
-  uint16_t local_trigger_coincidence;  ///< need n+1 channels to trigger locally
+  uint32_t local_trigger_coincidence;  ///< need n+1 channels to trigger locally
+  uint32_t coincidence_window_ticks;   ///< width of coincidence in clocks
+  uint32_t trigout_coincidence;        ///< majority level for trigger out
   double pre_trigger_time_us;          ///< pulse length to store before trigger
   double post_trigger_time_us;         ///< pulse length to store after trigger
   uint32_t downsample_factor;          ///< NOT USED; kept for compaitibility 
+  int almostfull_reserve;              ///< assert busy if <= n buffers free
   TRIGGER_POLARITY trigger_polarity;   ///< trigger on rising or falling signals
   bool count_all_triggers;             ///< count triggers that overlap?
   ZERO_SUPPRESSION_TYPE zs_type;       ///< do any zero suppression?
   bool enable_trigger_overlap;         ///< generate partial triggers windows? 
   //  uint32_t interrupt_on_event;     ///< wait n events before interrupt  
   SIGNAL_LOGIC signal_logic;           ///< use NIM or TTL signals?
+  TRGOUT_MODE trgout_mode;             ///< send trgout or busy on front panel?
   bool enable_test_pattern;            ///< generate a test pattern internally?
   uint32_t acq_control_val;            ///< determines startup mode
   static const int MAXCHANS = 8;       ///< max hardware channels per board?
@@ -137,15 +155,17 @@ public:
 
   //utility functions
   /// Get the sample rate used, in samples per microsecond
-  double GetSampleRate() const; 
+  double GetSampleRate(bool downsamp = true) const; 
   /// Get the number of samples before the trigger
-  uint32_t GetPreNSamps() const;
+  uint32_t GetPreNSamps(bool downsamp=true) const;
   /// Get the number of samples after the trigger
-  uint32_t GetPostNSamps() const;
+  uint32_t GetPostNSamps(bool downsamp=true) const;
   /// Get the total number of samples read
-  uint32_t GetTotalNSamps() const;
+  uint32_t GetTotalNSamps(bool downsamp=true) const;
   /// Get the sample number at which the trigger occurred
-  int GetTriggerIndex() const;
+  int GetTriggerIndex(bool downsamp = true) const;
+  /// Get the total number of buffers
+  uint32_t GetTotalNBuffers() const;
   /// number of triggers that can be stored in buffer is 2^n
   uint32_t GetBufferCode() const; 
   /// Get the value to write to the custom size register
@@ -182,11 +202,15 @@ public:
   int enabled_boards;             ///< number of boards enabled in this run
   int enabled_channels;           ///< number of channels enabled in this run 
   int vme_bridge_link;		  ///< the caenvmelib link number for the VME bridge
+  uint32_t basecalib_samples;          ///< samples per trigger for baseline calib
+  uint32_t basecalib_triggers;         ///< events per baseline estimation
+  int basecalib_max_tries;        ///< max attempts before giving up calibration
+
   static const int nboards = N_V172X_BOARDS; ///< max number of boards allowed
   V172X_BoardParams board[nboards];          ///< parameters for each board
   //utility functions
   /// Get the expected total event size in bytes
-  int GetEventSize(); 
+  int GetEventSize(bool downsamp = true); 
   /// Get the number of boards enabled in this run
   int GetEnabledBoards();
   /// Get the number of channels enabled in this run

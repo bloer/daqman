@@ -13,9 +13,24 @@ ifeq ("$(MAKEDEPEND)","")
 $(error 'makedepend' is required for this Makefile to work properly)
 endif
 
+#find the root version
+ROOTVERSION = $(shell root-config --version)
+#ROOTVERSION := $(dir $(ROOTVERSION))
+
 #find all the cc files, regardless of subdirectory except test.cc,  WarpCrateIO
 CODE        := $(shell find . -name '*.cc' | grep -v 'ConfigHandler/test.cc' | \
 		grep -v 'WarpCrateIO' | sort)
+ifneq ("$(ROOTVERSION)","5.34/19")
+CODE := $(filter-out ./modules/src/TTreeFormula.cc,$(CODE))
+endif
+
+#DATABASES: check for db libraries here and remove otherwise
+ifeq ("$(shell locate mongoclient)","")
+CODE := $(filter-out ./database/src/MongoDBInterface.cc,$(CODE))
+else
+LIBS += -lmongoclient 
+endif
+
 #all .cc files in exe/ will make executables
 MAIN_CODE   := $(shell find ./exe -name '*.cc' | sort)
 #all main code links against all others
@@ -59,7 +74,7 @@ LDFLAGS     += -lz $(DEBUGFLAGS)
 BUILDLIBS   := lib/libdaqman.so
 
 #some more optional libraries
-CAENLIBS    := -L/usr/local/lib64 -lCAENVME
+CAENLIBS    := -L/usr/local/lib64 -lCAENVME -lCAENDigitizer
 #specific hack to avoid corrupted libs on blackhole
 ifeq ("$(shell /bin/hostname)","blackhole.lngs.infn.it")
 THREADLIBS  += -L/usr/local/lib64/boost -lboost_thread -lboost_date_time
@@ -83,7 +98,7 @@ ifeq ($(UNAME),"Linux")
 CXXFLAGS += -DLINUX
 LIBFLAGS += -Wl,-soname,$(notdir $@) -shared 
 #don't do CAEN stuff if the CAENVME librry is not installed 
-ifeq ("$(shell /sbin/ldconfig -p | grep CAENVME)","")
+ifeq ("$(shell /sbin/ldconfig -p | grep CAENDigitizer)","")
 SKIPCAEN = true
 endif
 else 
@@ -169,8 +184,8 @@ lib/libDict.so: $(DICTOBJS)
 	@$(CXX) $(LDFLAGS) $(LIBFLAGS) $(LIBS) $^ -o $@ > /dev/null
 
 LinkDef.h: $(DICTHEADS)
-	@echo "  Generating $@"
-	$(shell ./scripts/generateLinkDef.sh >$@)
+	@echo "  Generating $@..."
+	@./scripts/generateLinkDef.sh >$@
 
 $(DICT): $(DICTHEADS) LinkDef.h
 	@echo "  [ROOTCINT] $@"
@@ -209,6 +224,6 @@ distclean: clean
 	rm -f .deps .deps.bak
 	rm -rf doc/html doc/latex
 
-.PHONY: clean distclean deps doc
+.PHONY: clean distclean deps doc checkrootversion
 
 # DO NOT DELETE
