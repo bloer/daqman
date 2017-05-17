@@ -19,6 +19,7 @@
 #include "TClassMenuItem.h"
 #include "TTreeFormulaManager.h"
 #include "TTreePlayer.h"
+#include "RVersion.h"
 
 SpectrumMaker::SpectrumMaker(const std::string& name) : 
   BaseModule(name, "Histogram variables from data") ,
@@ -74,7 +75,11 @@ int SpectrumMaker::Initialize()
 		      _nbinsy, _ymin, _ymax);
   _histo->SetXTitle(_xtitle.c_str());
   _histo->SetYTitle(_ytitle.c_str());
+#if ROOT_VERSION_CODE<ROOT_VERSION(6,0,0)
   _histo->ResetBit(TH1::kCanRebin);
+#else
+  _histo->SetCanExtend(0);
+#endif
   
   //add Reset to the histogram's popup title
   if(std::string(_histo->Class()->GetMenuList()->First()->GetTitle()) != 

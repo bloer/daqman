@@ -283,8 +283,15 @@ int LightYieldGraph::SetAliasesFromLocalData(TTree* Events, bool draw)
     TSpectrum spec(10,0.5);
     spec.Search(hist,2,"",0.02);
     int n = spec.GetNPeaks();
-    float* x = spec.GetPositionX();
-    float mean = *(std::min_element(x, x+n));
+#if ROOT_VERSION_CODE<ROOT_VERSION(6,0,0)
+    Float_t* x;
+    Float_t mean;
+#else
+    Double_t* x;
+    Double_t mean;
+#endif
+    x = spec.GetPositionX();
+    mean = *(std::min_element(x, x+n));
     
     TF1* fitfunc = (TF1*)(gROOT->GetFunction("spe_fitfunc"));
     if(!fitfunc)
