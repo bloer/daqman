@@ -72,9 +72,7 @@ ConfigHandler::ConfigHandler() :
   
   //fill the paths to look for config files
   _cfg_paths.clear();
-  //first is the current working directory
-  _cfg_paths.push_back(".");
-  //next is the environement variable DAQMAN_CFGDIR if defined
+  //first is the environement variable DAQMAN_CFGDIR if defined
   if( getenv("DAQMAN_CFGDIR") )
     _cfg_paths.push_back( getenv("DAQMAN_CFGDIR") );
   //then relative to the location of the current executable 
@@ -101,18 +99,23 @@ ConfigHandler::~ConfigHandler()
   }
 }
 
+bool testfile(const std::string& filepath){
+  Message(DEBUG)<<"Searching for file "<<filepath<<" under path...\n";
+  std::ifstream test(filepath.c_str());
+  return test.is_open();
+}
+
 std::string ConfigHandler::FindConfigFile(const std::string& fname)
 {
+  //first look in PWD or absolute path
+  if(testfile(fname))
+    return fname;
+
   //look for the file in each of the defined locations
   for(size_t i=0; i<_cfg_paths.size(); ++i){
     std::string filepath = _cfg_paths[i]+"/"+fname;
-    Message(DEBUG)<<"Searching for file "<<fname<<" under path "
-		 <<filepath<<"...\n";
-    std::ifstream test(filepath.c_str());
-    if(test.is_open()){
-      Message(INFO)<<"Found config file "<<fname<<" at "<<filepath<<"\n";
+    if(testfile(filepath))
       return filepath;
-    }
   }
   
   //if we get here, we couldn'f find it
