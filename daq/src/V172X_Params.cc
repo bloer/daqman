@@ -225,6 +225,14 @@ int V172X_BoardParams::UpdateBoardSpecificVariables()
     stupid_size_factor = 4;
     ns_per_clocktick = 8;
     break;
+  case V1725:
+    max_sample_rate = 250;
+    sample_bits = 14;
+    bytes_per_sample = 2;
+    v_full_scale = 2;
+    stupid_size_factor = 2;
+    ns_per_clocktick = 8;
+    break;
   default:
     return -1;
     
@@ -269,7 +277,7 @@ uint32_t V172X_BoardParams::GetBufferCode() const
   int max_samples = mem_size*Mbyte / bytes_per_sample;
   if(board_type == V1751)
     max_samples = (int)(Mbyte * (mem_size == 0x02 ? 1.835 : 14.4 ));
-  else if(board_type == V1730)
+  else if( (board_type == V1730) || (board_type == V1725) )
     max_samples = ( mem_size == 1 ? 640*1024 : (int)(5.12*Mbyte));
   uint32_t buffer_code = (uint32_t)floor(log2(max_samples / 
 					      GetTotalNSamps(false)));
@@ -282,7 +290,7 @@ uint32_t V172X_BoardParams::GetCustomSizeSetting() const
 {
   if(board_type == V1751)
     return GetTotalNSamps(false)/stupid_size_factor;
-  else if(board_type == V1730)
+  else if( (board_type == V1730) || (board_type == V1725) )
     return GetTotalNSamps(false) / 10;
   return GetTotalNSamps(false)*bytes_per_sample/
     ( sizeof(uint32_t) * stupid_size_factor);
@@ -395,6 +403,10 @@ std::ostream& operator<<(std::ostream& out, const BOARD_TYPE& type)
     return out<<"V1731";
   else if (type == V1751)
     return out<<"V1751";
+  else if (type == V1725)
+    return out<<"V1725";
+  else if (type == V1730)
+    return out<<"V1730";
   else 
     return out<<"OTHER";
 }
@@ -465,6 +477,10 @@ std::istream& operator>>(std::istream& in, BOARD_TYPE& type)
     type = V1731;
   else if (temp == "V1751")
     type = V1751;
+  else if (temp == "V1725")
+    type = V1725;
+  else if (temp == "V1730")
+    type = V1730;
   else if (temp == "OTHER")
     type = OTHER;
   else{

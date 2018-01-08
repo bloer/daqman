@@ -431,7 +431,7 @@ int V172X_Daq::Update()
 	V172X_ChannelParams& channel = board.channel[i];
 	channel_mask += (1<<i) * channel.enabled;
 	uint32_t trigmaskbit = (1<<i);
-	if(board.board_type == V1730)
+	if( (board.board_type == V1730) || (board.board_type == V1725) )
 	  trigmaskbit = (1<<(i/2));
 	trigger_mask |= (trigmaskbit * channel.enable_trigger_source);
 	trigger_out_mask |= (trigmaskbit * channel.enable_trigger_out);
@@ -457,10 +457,10 @@ int V172X_Daq::Update()
 	//trigger threshold
 	WriteDigitizerRegister(VME_ChTrigThresh+i*0x100, 
 			 channel.threshold, handle);
+	
 	//time over trigger threhsold
 	nsamp = std::ceil(channel.thresh_time_us * board.GetSampleRate()) 
 	  / board.stupid_size_factor;
-	
 	if(nsamp >= (1<<12)) nsamp = (1<<12) - 1;
 	WriteDigitizerRegister(VME_ChTrigSamples+i*0x100, nsamp, handle);
 	//dc offset
@@ -468,7 +468,17 @@ int V172X_Daq::Update()
 	CAEN_DGTZ_SetChannelDCOffset(handle,i, channel.dc_offset);
 	waitforstable(handle,i);
 	//WriteDigitizerRegister(VME_ChDAC+i*0x100, channel.dc_offset, handle);
-      }
+
+	//this register is now ‘Self-Trigger logic’, set all to OR
+	if (board.board_type == V1730 || board.board_type == V1725) {    
+    		for(int i=0; i<board.nchans; ++i) {
+        		if(i%2 == 0) WriteDigitizerRegister(VME_ChTrigSamples + i*0x100, 3, handle);
+    		}
+	}
+ 
+
+      } // end of channel loop
+
       //finish up with the board parameters
       uint32_t channel_config = (1<<16) * board.zs_type + 
 	(1<<6) * board.trigger_polarity + 
