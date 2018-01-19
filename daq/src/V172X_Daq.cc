@@ -171,7 +171,7 @@ int V172X_Daq::Initialize()
     if(_params.board[i].enabled){
       CAEN_DGTZ_ConnectionType linkType = _params.board[i].usb ? 
 	CAEN_DGTZ_USB : CAEN_DGTZ_OpticalLink;
-      if(_params.board[i].usb || _params.board[i].link==_params.vme_bridge_link)
+      if(_params.board[i].usb || _params.board[i].link!=_params.vme_bridge_link)
 	_params.board[i].address = 0;
       ErrC err = CAEN_DGTZ_OpenDigitizer(linkType,_params.board[i].link,
 					 _params.board[i].chainindex,
