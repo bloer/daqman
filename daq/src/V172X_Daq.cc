@@ -716,16 +716,16 @@ void V172X_Daq::DataAcquisitionLoop()
     std::vector<uint32_t> acq_write;
     for(int i=0; i<_params.nboards; i++){
       if(_params.board[i].enabled){
-	WriteDigitizerRegister(VME_SWClear,1,_handle_board[i]);
-	WriteDigitizerRegister(VME_AcquisitionControl,
-			       _params.board[i].acq_control_val+0x4,
-			       _handle_board[i]);
+        WriteDigitizerRegister(VME_SWClear,1,_handle_board[i]);
+        WriteDigitizerRegister(VME_AcquisitionControl,
+                               _params.board[i].acq_control_val+0x4,
+                               _handle_board[i]);
       }
     }
     if(_params.send_start_pulse)
       CAENVME_SetOutputRegister(_handle_vme_bridge, 
-				cvOut0Bit | cvOut1Bit | cvOut2Bit | 
-				cvOut3Bit | cvOut4Bit );
+                                cvOut0Bit | cvOut1Bit | cvOut2Bit | 
+                                cvOut3Bit | cvOut4Bit );
   }
   catch(std::exception& e){
     Message(ERROR)<<"Unable to arm the board for run!\n";
@@ -743,18 +743,18 @@ void V172X_Daq::DataAcquisitionLoop()
       //Enable IRQ lines and wait for an interrupt
       CAENVME_IRQEnable(irq_handle,0xFF);
       err = CAENVME_IRQWait(irq_handle,0xFF,
-					 _params.trigger_timeout_ms);
+                            _params.trigger_timeout_ms);
       CAENVME_IRQDisable(irq_handle,0xFF);
     }
     else{
       for(int i=0; i<_params.nboards; i++){
-	if(!_params.board[i].enabled) continue;
-	//see if there is an event ready on the board
-	if(DataAvailable(ReadDigitizerRegister(VME_AcquisitionStatus, 
-					       _handle_board[i])) ){
-	  err = cvSuccess;
-	  break;
-	}
+        if(!_params.board[i].enabled) continue;
+        //see if there is an event ready on the board
+        if(DataAvailable(ReadDigitizerRegister(VME_AcquisitionStatus, 
+                                               _handle_board[i])) ){
+          err = cvSuccess;
+          break;
+        }
       }
     }
 
@@ -767,19 +767,19 @@ void V172X_Daq::DataAcquisitionLoop()
       //notice: no break here!
     case cvTimeoutError:
       if(!use_interrupt){
-	//sleep for the timeout interval
-	boost::this_thread::sleep(
-	    boost::posix_time::millisec(_params.trigger_timeout_ms));
+        //sleep for the timeout interval
+        boost::this_thread::sleep(
+           boost::posix_time::millisec(_params.trigger_timeout_ms));
       }
       if(_params.auto_trigger){
-	Message(DEBUG)<<"Triggering...\n";
-	for(int i=0; i<_params.nboards; i++){
-	  if(!_params.board[i].enabled) continue;
-	  WriteDigitizerRegister(VME_SWTrigger,1,_handle_board[i]);
-	}
+        Message(DEBUG)<<"Triggering...\n";
+        for(int i=0; i<_params.nboards; i++){
+          if(!_params.board[i].enabled) continue;
+          WriteDigitizerRegister(VME_SWTrigger,1,_handle_board[i]);
+        }
       }
       else
-	Message(DEBUG)<<"Waiting for trigger..."<<std::endl;
+        Message(DEBUG)<<"Waiting for trigger..."<<std::endl;
       continue;
       break;
     default:
@@ -792,7 +792,7 @@ void V172X_Daq::DataAcquisitionLoop()
     RawEventPtr next_event(new RawEvent);
     size_t blocknum = 
       next_event->AddDataBlock(RawEvent::CAEN_V172X,
-			       _params.event_size_bytes+event_size_padding);
+                               _params.event_size_bytes+event_size_padding);
     unsigned char* buffer = next_event->GetRawDataBlock(blocknum);
     const uint32_t UNSET_EVENT_COUNTER = 0xFFFFFFFF;
     uint32_t event_counter = UNSET_EVENT_COUNTER;
@@ -805,34 +805,34 @@ void V172X_Daq::DataAcquisitionLoop()
       int tries = 0;
       const int maxtries = 50;
       while(!DataAvailable(ReadDigitizerRegister(VME_AcquisitionStatus, 
-						 _handle_board[i])) &&
-	    tries++ < maxtries) {}
+                                                 _handle_board[i])) &&
+            tries++ < maxtries) {}
       if(tries >= maxtries){
-	Message(DEBUG)<<"No trigger received on board "<<i<<"\n";
-	continue;
+        Message(DEBUG)<<"No trigger received on board "<<i<<"\n";
+        continue;
       }
       
       uint32_t this_dl_size = 0;
       tries=0;
       ErrC err = CAEN_DGTZ_Success;
       while(this_dl_size == 0 && ++tries<maxtries ){
-	err = CAEN_DGTZ_ReadData(_handle_board[i], 
-				 CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT,
-				 (char*)(buffer+data_transferred), 
-				 &this_dl_size);
-	if(err != CAEN_DGTZ_Success){
-	  Message(ERROR)<<"Error generated while downloading event from board"
-			<<i<<": "<<err<<"\n";
-	  continue;
-	}
+        err = CAEN_DGTZ_ReadData(_handle_board[i], 
+                                 CAEN_DGTZ_SLAVE_TERMINATED_READOUT_MBLT,
+                                 (char*)(buffer+data_transferred), 
+                                 &this_dl_size);
+        if(err != CAEN_DGTZ_Success){
+          Message(ERROR)<<"Error generated while downloading event from board"
+                        <<i<<": "<<err<<"\n";
+          continue;
+        }
       }
       
       if(this_dl_size==0){
-	Message(ERROR)<<"0 bytes downloaded for board "<<i<<std::endl;
-	Message(DEBUG)<<"Events stored on this board: "
+        Message(ERROR)<<"0 bytes downloaded for board "<<i<<std::endl;
+        Message(DEBUG)<<"Events stored on this board: "
                       <<ReadDigitizerRegister(VME_EventsStored, 
-					      _handle_board[i])
-		      <<"\n";
+                                              _handle_board[i])
+                      <<"\n";
         uint32_t out;
         out = ReadDigitizerRegister(VME_VMEStatus, _handle_board[i]);
         Message(DEBUG)<<"VME status:"
@@ -840,7 +840,7 @@ void V172X_Daq::DataAcquisitionLoop()
                       <<"\n\tOutput buffer full: "<< (out&2)
                       <<"\n\tData ready: "<< (out&1)<<"\n";
         out = ReadDigitizerRegister(VME_AcquisitionStatus, 
-			      _handle_board[i]);
+                                    _handle_board[i]);
         Message(DEBUG)<<"Acquisition status:"
                       <<"\n\tReady for acquisition: "<< (out&256)
                       <<"\n\tPLL Status: "<< (out&128)
@@ -850,68 +850,68 @@ void V172X_Daq::DataAcquisitionLoop()
                       <<"\n\tEvent ready: "<< (out&8)
                       <<"\n\t Run on: "<< (out&4) <<"\n";
         out = ReadDigitizerRegister(VME_EventSize, _handle_board[i]);
-	Message(DEBUG)<<"Next event size: "<<out<<"\n";
+        Message(DEBUG)<<"Next event size: "<<out<<"\n";
         Message(DEBUG)<<"Expected event size "
                       <<_params.board[i].event_size_bytes/4<<"\n";
-	
-	
-	//free the buffer so we don't re-trigger spuriously
-	WriteDigitizerRegister(VME_BufferFree,1, 
-			 _handle_board[i]);
-	Message(DEBUG)<<"Events stored on this board: "
-		      <<ReadDigitizerRegister(VME_EventsStored,_handle_board[i])
-		      <<"\n";
-	WriteDigitizerRegister(VME_BufferFree,2, 
-			 _handle_board[i]);
-	Message(DEBUG)<<"Events stored on this board: "
-		      <<ReadDigitizerRegister(VME_EventsStored,_handle_board[i])
-		      <<"\n";
-	Message(ERROR)<<"Boards don't usually recover from this error! "
-		      <<"Aborting!\n";
-	_status = COMM_ERROR;
-	_is_running = false;
-	break;
+        
+        
+        //free the buffer so we don't re-trigger spuriously
+        WriteDigitizerRegister(VME_BufferFree,1, 
+                               _handle_board[i]);
+        Message(DEBUG)<<"Events stored on this board: "
+                      <<ReadDigitizerRegister(VME_EventsStored,_handle_board[i])
+                      <<"\n";
+        WriteDigitizerRegister(VME_BufferFree,2, 
+                               _handle_board[i]);
+        Message(DEBUG)<<"Events stored on this board: "
+                      <<ReadDigitizerRegister(VME_EventsStored,_handle_board[i])
+                      <<"\n";
+        Message(ERROR)<<"Boards don't usually recover from this error! "
+                      <<"Aborting!\n";
+        _status = COMM_ERROR;
+        _is_running = false;
+        break;
       }
       else{
-	
-	//this could ignore potential align64 extra bits:
-	//data_transferred += this_dl_size;
-	//instead, we check the actual event
-	long ev_size = (*((uint32_t*)(buffer+data_transferred)) & 
-			     0x0FFFFFFF) * sizeof(uint32_t);
-	if(std::abs(ev_size - (long)this_dl_size) > 5){
-	  Message(WARNING)<<"Event size does not match download count!\n\t"
-			  <<"Event size: "<<ev_size<<"; download size: "
-			  <<this_dl_size<<"; requested download "
-			  <<_params.board[i].event_size_bytes<<std::endl;
-	  Message(ERROR)<<"Boards don't usually recover from this error! "
-		      <<"Aborting!\n";
-	  _status = COMM_ERROR;
-	  _is_running = false;
-	  break;
-	}
-	//check for event ID misalignment
-	uint32_t evct = (((uint32_t*)(buffer+data_transferred))[2])&0xFFFFFF;
-	if(event_counter == UNSET_EVENT_COUNTER)
-	  event_counter = evct;
-	else if(evct != event_counter){
-	  Message(CRITICAL)<<"Mismatched event ID on board "<<i
-			   <<"; received "<<evct<<", expected "<<event_counter
-			   <<"; Aboring run\n";
-	  _status = GENERIC_ERROR;
-	  _is_running=false;
-	  break;
-	}
-	
-	if(_params.board[i].downsample_factor > 1){
-	  DownsampleEvent(buffer+data_transferred, 
-			  _params.board[i].downsample_factor, ev_size, 
-			  _params.board[i].bytes_per_sample);
-	   
-	}
-	
-	data_transferred += ev_size;
-	
+        
+        //this could ignore potential align64 extra bits:
+        //data_transferred += this_dl_size;
+        //instead, we check the actual event
+        long ev_size = (*((uint32_t*)(buffer+data_transferred)) & 
+                        0x0FFFFFFF) * sizeof(uint32_t);
+        if(std::abs(ev_size - (long)this_dl_size) > 5){
+          Message(WARNING)<<"Event size does not match download count!\n\t"
+                          <<"Event size: "<<ev_size<<"; download size: "
+                          <<this_dl_size<<"; requested download "
+                          <<_params.board[i].event_size_bytes<<std::endl;
+          Message(ERROR)<<"Boards don't usually recover from this error! "
+                        <<"Aborting!\n";
+          _status = COMM_ERROR;
+          _is_running = false;
+          break;
+        }
+        //check for event ID misalignment
+        uint32_t evct = (((uint32_t*)(buffer+data_transferred))[2])&0xFFFFFF;
+        if(event_counter == UNSET_EVENT_COUNTER)
+          event_counter = evct;
+        else if(evct != event_counter){
+          Message(CRITICAL)<<"Mismatched event ID on board "<<i
+                           <<"; received "<<evct<<", expected "<<event_counter
+                           <<"; Aboring run\n";
+          _status = GENERIC_ERROR;
+          _is_running=false;
+          break;
+        }
+        
+        if(_params.board[i].downsample_factor > 1){
+          DownsampleEvent(buffer+data_transferred, 
+                          _params.board[i].downsample_factor, ev_size, 
+                          _params.board[i].bytes_per_sample);
+          
+        }
+        
+        data_transferred += ev_size;
+        
       }
     }
     if(GetStatus() != NORMAL){
@@ -941,4 +941,4 @@ void V172X_Daq::DataAcquisitionLoop()
     }
   }
   Message(DEBUG)<<_triggers<<" total triggers downloaded."<<std::endl;
-}  
+}
