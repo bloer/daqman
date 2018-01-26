@@ -1,14 +1,16 @@
 #include "V172X_Event.hh"
+#include "V172X_Params.hh"
 #include "Message.hh"
 #include <bitset>
 
 V172X_BoardData::V172X_BoardData(const unsigned char* const raw_data) : 
   event_size( *((uint32_t*)raw_data) & 0x0FFFFFFF),//32-bit words
-  channel_mask( *((uint8_t*)(raw_data+4)) ),
+  channel_mask(  ((*((uint32_t*)(raw_data+11))&0xFF)>>16)
+                 | (*((uint32_t*)(raw_data+4))&0xFF) ),
   pattern( *((uint16_t*)(raw_data+5)) ),
   zle_enabled( *(raw_data+7) & 1),
   board_id( (*((uint8_t*)(raw_data+7))) >>3 ),
-  event_counter( *((uint32_t*)(raw_data+8)) ),
+  event_counter( *((uint32_t*)(raw_data+8)) & 0x00FFFFFF ),
   timestamp( *((uint32_t*)(raw_data+12)) & 0x7FFFFFFF ) 
 {
   /*
@@ -21,7 +23,7 @@ V172X_BoardData::V172X_BoardData(const unsigned char* const raw_data) :
   std::fill_n(channel_start,nchans,(char*)0);
   std::fill_n(channel_end,nchans,(char*)0);
   
-  std::bitset<8> enabled_chans(channel_mask);
+  std::bitset<V172X_BoardParams::MAXCHANS> enabled_chans(channel_mask);
   
   int bytes_per_chan = 0;
   if(enabled_chans.count()) 
