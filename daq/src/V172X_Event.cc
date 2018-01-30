@@ -2,10 +2,11 @@
 #include "V172X_Params.hh"
 #include "Message.hh"
 #include <bitset>
+#include <iomanip>
 
 V172X_BoardData::V172X_BoardData(const unsigned char* const raw_data) : 
   event_size( *((uint32_t*)raw_data) & 0x0FFFFFFF),//32-bit words
-  channel_mask(  ((*((uint32_t*)(raw_data+11))&0xFF)>>16)
+  channel_mask(  ((*((uint32_t*)(raw_data+8))&0xFF000000)>>16)
                  | (*((uint32_t*)(raw_data+4))&0xFF) ),
   pattern( *((uint16_t*)(raw_data+5)) ),
   zle_enabled( *(raw_data+7) & 1),
@@ -13,6 +14,13 @@ V172X_BoardData::V172X_BoardData(const unsigned char* const raw_data) :
   event_counter( *((uint32_t*)(raw_data+8)) & 0x00FFFFFF ),
   timestamp( *((uint32_t*)(raw_data+12)) & 0x7FFFFFFF ) 
 {
+  Message(DEBUG2)<<"V172X Event Header: \n"<<std::hex<<std::setfill('0')
+                 <<std::setw(8)<<((uint32_t*)(raw_data))[0]<<'\n'
+                 <<std::setw(8)<<((uint32_t*)(raw_data))[1]<<'\n'
+                 <<std::setw(8)<<((uint32_t*)(raw_data))[2]<<'\n'
+                 <<std::setw(8)<<((uint32_t*)(raw_data))[3]<<'\n'
+                 <<std::dec<<std::endl;
+                        
   /*
   std::cerr<<std::hex;
   for(uint32_t word=0; word < 100; word++){
