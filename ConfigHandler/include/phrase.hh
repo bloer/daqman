@@ -34,7 +34,7 @@ inline std::istream& operator>>(std::istream& in, phrase& s){
   char next=0;
   in >> next;
   if(next == '"'){
-  while( in.get(next) && next != '"'){
+    while( in.get(next) && next != '"'){
       s.append(1,next);
     }
   }
@@ -49,7 +49,11 @@ inline std::istream& operator>>(std::istream& in, phrase& s){
 
 /// Surround the string body with quotes
 inline std::ostream& operator<<(std::ostream& o, const phrase& s){
-  return o<<'"'<<(std::string&)(s)<<'"';
+  //just to be safe, replace all '"' in the string with single quotes 
+  o<<'"';
+  for(std::string::const_iterator c = s.begin(); c!= s.end(); ++c)
+    o<< ((*c) == '"' ? '\'' : (*c));
+  return o<<'"';
 }
   
 
