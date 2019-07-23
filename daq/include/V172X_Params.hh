@@ -37,7 +37,7 @@ enum TRIGGER_POLARITY {TP_RISING = 0, TP_FALLING = 1};
     @brief defines the available models of V172X digitzer
 */
 enum BOARD_TYPE { V1724 = 0, V1721 = 1, V1731 = 2, V1720 = 3 , V1751 = 5, 
-		  V1730 = 11, OTHER = 256};
+		  V1730 = 11, V1725 = 14, OTHER = 256};
 
 /** @enum TRGOUT_MODE
     @brief defines available settings for the TRGOUT front panel connector
@@ -148,7 +148,7 @@ public:
   TRGOUT_MODE trgout_mode;             ///< send trgout or busy on front panel?
   bool enable_test_pattern;            ///< generate a test pattern internally?
   uint32_t acq_control_val;            ///< determines startup mode
-  static const int MAXCHANS = 8;       ///< max hardware channels per board?
+  static const int MAXCHANS = 16;       ///< max hardware channels per board?
   int nchans;                          ///< actual num channels on this unit
   static const int Nth_factor = 4;     ///< how many samples in the trigger time
   V172X_ChannelParams channel[MAXCHANS]; ///< parameters for each channel

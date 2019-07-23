@@ -10,6 +10,7 @@
 #include <vector>
 #include <stdint.h>
 #include <boost/shared_ptr.hpp>
+#include "V172X_Params.hh"
 
 //forward declaration
 class V172X_Params;
@@ -25,13 +26,13 @@ public:
   ///< destructor
   ~V172X_BoardData();
   uint32_t event_size;      ///< size of this board's event (in 32-bit words)
-  uint8_t channel_mask;     ///< mask of enabled channels
+  uint32_t channel_mask;     ///< mask of enabled channels
   uint16_t pattern;         ///< pattern stored by LVDS I/O channels 
   bool zle_enabled;         ///< is zero length encoding enabled?
   uint8_t board_id;         ///< id number of this board
   uint32_t event_counter;   ///< counter of triggers received so far 
   uint32_t timestamp;       ///< trigger time (interp. depends on board type)
-  static const int nchans = 8; ///< total number of channels per board
+  static const int nchans = V172X_BoardParams::MAXCHANS; ///< total number of channels per board
   char* channel_start[nchans]; ///< start of each channel's data
   char* channel_end[nchans];   ////< end of each channel's data
 };
