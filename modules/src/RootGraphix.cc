@@ -21,7 +21,7 @@ const UInt_t fKeepRunning = 0x100000;
 
 void* RunRootGraphix(void* mutexptr)
 {
-  TMutex* mutex = (TMutex*)(mutexptr);
+  TMutexObj* mutex = (TMutexObj*)(mutexptr);
   while(mutex->TestBit(fKeepRunning)){
     gSystem->Sleep(100);
     TLockGuard lock(mutex);

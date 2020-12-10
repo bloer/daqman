@@ -15,6 +15,7 @@
 #include "TMacro.h"
 #include "TList.h"
 #include "TObjString.h"
+#include "TVirtualX.h"
 #include <algorithm>
 
 typedef runinfo::stringmap stringmap;
