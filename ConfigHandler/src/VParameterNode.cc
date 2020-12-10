@@ -13,7 +13,7 @@ bool VParameterNode::SaveToFile(const char *fname, bool showhelp)
     Message(ERROR)<<"Unable to open file "<<fname<<" for writing."<<std::endl;
     return false;
   }
-  return WriteTo(fout, showhelp);
+  return (bool)WriteTo(fout, showhelp);
 }
 
 bool VParameterNode::ReadFromFile(const char *fname, const std::string& key,

@@ -303,7 +303,7 @@ int RawWriter::OpenNewFile()
   _ghead.file_size = _ghead.global_header_size;
   
   if(!_fout.write((const char*)(&_ghead), _ghead.global_header_size)){
-    Message(ERROR)<<"RawWriter: Error writing header to file "<<fname<<"\n";
+    Message(ERROR)<<"RawWriter: Error writing header to file "<<fname.str()<<"\n";
     return 2;
   }
   
