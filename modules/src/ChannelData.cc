@@ -9,6 +9,7 @@
 #include "TList.h"
 #include "TGaxis.h"
 #include "TMarker.h"
+#include "TF1.h"
 #include <algorithm>
 #include <cmath>
 
