@@ -29,8 +29,8 @@ int EvalRois::Initialize()
     Message(DEBUG)<<"Saving info for "<<_regions.size()<<" regions.\n";
   }
   else{
-    Message(ERROR)<<"No ROIs defined for EvalRois!\n";
-    return 1;
+    Message(ERROR)<<"No ROIs defined for EvalRois! Using default (-1,1) us \n";
+    _regions.push_back(std::make_pair(-1., 1.));
   }  
   return 0;
 }
