@@ -585,6 +585,12 @@ int V172X_Daq::Update()
 	  return 1;
 	}
       }
+      //this ensures the digitizer re-calculates event size in case
+      // a buffer was previously allocated
+      char* dummy = 0;
+      uint32_t dummysize = 0;
+      CAEN_DGTZ_MallocReadoutBuffer(handle, &dummy, &dummysize);
+      CAEN_DGTZ_FreeReadoutBuffer(&dummy);
       
     }
     /*Find the max expected event size in bytes
@@ -592,7 +598,7 @@ int V172X_Daq::Update()
     The data size is 2 bytes per sample per channel
     */
     Message(DEBUG)<<"The expected event size is "<<_params.GetEventSize(false)
-		  <<" bytes."<<std::endl;   
+		  <<" bytes."<<std::endl;
     runinfo* info = EventHandler::GetInstance()->GetRunInfo();
     if(info){
       info->SetMetadata("nchans",_params.GetEnabledChannels());
