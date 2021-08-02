@@ -63,7 +63,7 @@ int MongoDBInterface::Connect()
     return 0;
   std::string err = "";
   try{
-    _dbconnection.connect(mongo::HostAndPort(host,port));
+    _dbconnection.connect(mongo::HostAndPort(host,port), err);
      if(user != "")
       _dbconnection.auth(database,user,password, err);
   
@@ -145,12 +145,12 @@ int MongoDBInterface::StoreRuninfo(runinfo* info, STOREMODE mode)
       break;
     case UPDATE: //note: update and replace are the same here!
     case REPLACE:
-      _dbconnection.update(GetNS(), QUERY("runid"<<(int)info->runid), obj, 
-			   false);
+      _dbconnection.update(GetNS(), MONGO_QUERY("runid"<<(int)info->runid), 
+			   obj, false);
       break;
     case UPSERT:
-      _dbconnection.update(GetNS(), QUERY("runid"<<(int)info->runid), obj, 
-			   true);
+      _dbconnection.update(GetNS(), MONGO_QUERY("runid"<<(int)info->runid), 
+			   obj, true);
       break;
     default:
       Message(WARNING)<<"Unknwon db update mode supplied! Doing nothing.\n";
