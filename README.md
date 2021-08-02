@@ -1,7 +1,13 @@
 [![DOI](https://zenodo.org/badge/9839943.svg)](https://zenodo.org/badge/latestdoi/9839943)
 
 # README for daqman 
-## v0.1.1
+## Installation on RHEL7
+On a clean RHEL7 install, need to install the following package to include:
+ - imake
+ - boost-devel
+ - root
+ - root-spectrum
+ - zlib-devel
 
 ### Notes on compiling, running, etc with the daqman system:
 
