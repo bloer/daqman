@@ -270,9 +270,9 @@ int ProcessedPlotter::Process(EventPtr event)
 	}
 	
 	graphs->Draw("alp");
-	if(!autoscalex)
+	if(!autoscalex && graphs->GetXaxis())
 	  graphs->GetXaxis()->SetRangeUser(xmin, xmax);
-	if(!autoscaley)
+	if(!autoscaley && graphs->GetYaxis())
 	  graphs->GetYaxis()->SetRangeUser(ymin, ymax);
 	
 	/*TAxis* yax = graphs->GetYaxis();

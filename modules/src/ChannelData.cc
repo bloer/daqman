@@ -119,12 +119,13 @@ void ChannelData::Draw(bool baseline_subtracted, int downsample,
   
   
   graphs->Draw("alp");
-  if( !autoscalex )
+  if( !autoscalex && graphs->GetXaxis())
     graphs->GetXaxis()->SetRangeUser(xmin, xmax);
-  if( !autoscaley )
+  if( !autoscaley && graphs->GetYaxis())
     graphs->GetYaxis()->SetRangeUser(ymin, ymax);
   if(!autoscalex || !autoscaley)
-    graphs->Draw("alp");
+    gPad->Modified();
+    //graphs->Draw("alp");
   
   //now look for the integral
   bool draw_integral = false;
