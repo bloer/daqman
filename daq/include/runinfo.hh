@@ -9,6 +9,7 @@
 //hide this from ROOT
 #include "Rtypes.h"
 #include "TObject.h"
+#include "RunInfoFillHelper.hh"
 #ifndef __CINT__
 #include "ParameterList.hh"
 #endif 
@@ -75,27 +76,6 @@ public:
   typedef std::vector<std::string> stringvec;
   typedef std::map<std::string, std::string> stringmap;
   
-  /**@class DialogField
-     @brief utility class to handle querying user for metadata
-     Completely hide this from root!
-   */
-#ifndef __CINT__
-  class DialogField : public ParameterList{
-  public:
-    DialogField(const std::string& field_="", const std::string& desc = "",
-		bool required_=true, const std::string& default_="");
-    virtual ~DialogField() {}
-    bool IsValueValid(const std::string& val) const;
-    std::string fieldname;
-    std::string description;
-    std::vector<std::string> allowed_values;
-    bool required;
-    std::string defaultvalue;
-  };
-  
-  typedef std::vector<DialogField> FieldList;
-#endif
-
 public:
   //these fields allow the user to define additional metadata via config files
   ///Arbitrarty per-run info defined by the user
@@ -105,9 +85,9 @@ private:
 #ifndef __CINT__
   //All the dialog fields refer to entries in the main metadata map
   ///List of fields to query the user for at run start
-  FieldList prerun_dialog_fields;
+  DialogFieldList prerun_dialog_fields;
   ///List of fields to query the user for at run end
-  FieldList postrun_dialog_fields;
+  DialogFieldList postrun_dialog_fields;
 #endif
 
   ///Display the prerun dialog even if all fields are already valid

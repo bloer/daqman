@@ -414,10 +414,10 @@ int V172X_Daq::Update()
       runinfo* info = EventHandler::GetInstance()->GetRunInfo();
       if(info){
 	std::stringstream ss;
-	ss<<"board"<<iboard<<".pre_trigger_time_us";
+	ss<<"board"<<iboard<<"__pre_trigger_time_us";
 	info->SetMetadata(ss.str(), board.pre_trigger_time_us);
 	ss.str("");
-	ss<<"board"<<iboard<<".post_trigger_time_us";
+	ss<<"board"<<iboard<<"__post_trigger_time_us";
 	info->SetMetadata(ss.str(), board.post_trigger_time_us);
 	
       }

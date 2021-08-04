@@ -1,4 +1,6 @@
 #include "runinfo.hh"
+#include "RunInfoFillHelper.hh"
+
 #include "TGClient.h"
 #include "TApplication.h"
 #include "TGFrame.h"
@@ -16,12 +18,13 @@
 #include "TList.h"
 #include "TObjString.h"
 #include "TVirtualX.h"
+#include "RQ_OBJECT.h"
 #include <algorithm>
+#include <iostream>
 
 typedef runinfo::stringmap stringmap;
 typedef runinfo::stringvec stringvec;
-typedef runinfo::DialogField DialogField;
-typedef runinfo::FieldList FieldList;
+
 
 //utility class to read now-obsolete comment parameter and put into metadata
 class CommentReader{
@@ -151,11 +154,11 @@ void runinfo::MergeMetadata(const runinfo* other, bool overwritedups)
 
 //////// Everything below here is related to the metadata fill dialogs /////
 
-bool AreAllFieldsValid(FieldList* fields, stringmap* metadata)
+bool AreAllFieldsValid(DialogFieldList* fields, stringmap* metadata)
 {
   //see if all fields are valid
   bool allvalid = true;
-  FieldList::iterator field;
+  DialogFieldList::iterator field;
   for(field = fields->begin(); field != fields->end(); ++field){
     if( !field->IsValueValid( (*metadata)[field->fieldname] ) ){
       allvalid = false;
@@ -278,29 +281,13 @@ Bool_t DialogFieldFrame::Notify()
   return false;
 }
 
-class RunInfoFillHelper : public TGTransientFrame{
-public:
-  static int MetadataDialog(stringmap* metadata, FieldList* fields);
-private:
-  static int _returnval;
-  RunInfoFillHelper(stringmap* metadata, FieldList* fields);
-  virtual ~RunInfoFillHelper();
-public:
-  ///Steal the unused Activate function to handle button events
-  virtual Bool_t ProcessMessage(Long_t b, Long_t, Long_t); 
-private:
-  stringmap* _metadata;
-  FieldList* _fields;
-  TGCanvas* can; // won't auto cleanup, so must do on our own
-  TGCompositeFrame* mf2; //container of TGCanvas, need to delete manually
-};
 
 RunInfoFillHelper::~RunInfoFillHelper()
 {
 }
 
 int RunInfoFillHelper::_returnval=1; //default value for window closed
-int RunInfoFillHelper::MetadataDialog(stringmap* metadata, FieldList* fields)
+int RunInfoFillHelper::MetadataDialog(stringmap* metadata, DialogFieldList* fields)
 {
   if(!gApplication)
     new TApplication("_app",0,0);
@@ -310,13 +297,13 @@ int RunInfoFillHelper::MetadataDialog(stringmap* metadata, FieldList* fields)
   return _returnval;
 }
 
-Bool_t RunInfoFillHelper::ProcessMessage(Long_t b, Long_t, Long_t)
+bool RunInfoFillHelper::HandleClick(Int_t b)
 {
   if(b==1){ //OK was pressed
     //see if all fields are valid
     bool allvalid = true;
-    for(FieldList::iterator field = _fields->begin(); field != _fields->end(); ++field){
-      if( !field->IsValueValid( (*_metadata)[field->fieldname] ) ){
+    for(auto& field : *_fields){
+      if( !field.IsValueValid( (*_metadata)[field.fieldname] ) ){
 	allvalid = false;
 	break;
       }
@@ -336,7 +323,7 @@ Bool_t RunInfoFillHelper::ProcessMessage(Long_t b, Long_t, Long_t)
 }
 
 //do all work in constructor
-RunInfoFillHelper::RunInfoFillHelper(stringmap* metadata, FieldList* fields) : 
+RunInfoFillHelper::RunInfoFillHelper(stringmap* metadata, DialogFieldList* fields) : 
   TGTransientFrame(gClient->GetRoot()),
   _metadata(metadata), _fields(fields)
 {
@@ -354,12 +341,11 @@ RunInfoFillHelper::RunInfoFillHelper(stringmap* metadata, FieldList* fields) :
   TGTextButton* ok = new TGTextButton(bg,"OK");
   /*TGTextButton* cancel = */new TGTextButton(bg,"Cancel");
   bg->SetLayoutHints(new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,10,10,3,3));
-  bg->Connect("Clicked(Int_t)","TGCompositeFrame",this,
-	      "ProcessMessage(Long_t,Long_t,Long_t)");
+  bg->Connect("Clicked(Int_t)","RunInfoFillHelper",this, "HandleClick(Int_t)");
   
   TGTextEntry* first = 0, *last = 0;
   
-  for(FieldList::const_iterator field = _fields->begin(); 
+  for(DialogFieldList::const_iterator field = _fields->begin(); 
       field != _fields->end(); ++field){
     DialogFieldFrame* frame = new DialogFieldFrame(&(*field), metadata, mf2);
     mf2->AddFrame(frame, new TGLayoutHints(kLHintsExpandX,10,10,5,5));
@@ -410,7 +396,7 @@ RunInfoFillHelper::RunInfoFillHelper(stringmap* metadata, FieldList* fields) :
 
 int runinfo::FillDataForRun(runinfo::FILLTIME when)
 {
-  FieldList* fields = (when == RUNSTART ? &prerun_dialog_fields : 
+  DialogFieldList* fields = (when == RUNSTART ? &prerun_dialog_fields : 
 		                          &postrun_dialog_fields );
   bool forcedialog = (when == RUNSTART ? force_prerun_dialog : 
 		                         force_postrun_dialog );
