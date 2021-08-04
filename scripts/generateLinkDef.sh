@@ -15,7 +15,7 @@ headers=$(echo $headers | grep -v "doc" | grep -v "libdaqman")
 stl=""
 
 for file in $headers ; do
-    [ -n "$(grep ClassDef $file)" ] || continue
+    [ -n "$(grep -e ClassDef -e RQ_OBJECT $file)" ] || continue
     echo "#pragma link C++ defined_in \"$file\";"
     #now look for template declarations
     exclude=0
