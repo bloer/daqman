@@ -29,6 +29,7 @@
 #include "ConvertData.hh"
 #include "SumChannels.hh"
 #include "TriggerHistory.hh"
+#include "AveragePSD.hh"
 
 #include "runinfo.hh"
 
@@ -125,6 +126,14 @@ int main(int argc, char** argv)
   thread2.AddModule(new TriggerHistory);
   thread2.AddModule(rootgraphix, false);
   async_threads.push_back(&thread2);
+
+  //PSDs gets it's own thread, disabled by default
+  AsyncEventHandler thread4;
+  thread1.AddReceiver(&thread4);
+  AveragePSD* psd = new AveragePSD;
+  psd->enabled = false;
+  thread4.AddModule(psd);
+  async_threads.push_back(&thread4);
   
   //allow as many spectra as we want
   std::vector<SpectrumMaker*> spectra;

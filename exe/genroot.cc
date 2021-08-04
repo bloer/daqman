@@ -19,6 +19,7 @@
 #include "PulseFinder.hh"
 #include "RootWriter.hh"
 #include "ConvertData.hh"
+#include "AveragePSD.hh"
 #include <cstdlib>
 
 
@@ -180,6 +181,7 @@ int main(int argc, char** argv)
   EventHandler* modules = EventHandler::GetInstance();
   modules->AddCommonModules();
   modules->AddModule<AverageWaveforms>();
+  modules->AddModule<AveragePSD>();
   //modules->AddModule<GenericAnalysis>();
   RootWriter* writer = modules->AddModule<RootWriter>();
   
