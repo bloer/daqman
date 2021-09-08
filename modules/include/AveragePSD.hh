@@ -24,6 +24,8 @@ public:
   int Finalize();
   int Process(EventPtr evt);
   int Process(ChannelData* chdata);
+
+  void Reset();
   
   static const std::string GetDefaultName(){ return "AveragePSD"; }
 

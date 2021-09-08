@@ -21,6 +21,8 @@ public:
   int Finalize();
   int Process(EventPtr evt);
   
+  void Reset();
+  
   static std::string GetDefaultName(){ return "SpectrumMaker"; }
 private:
 

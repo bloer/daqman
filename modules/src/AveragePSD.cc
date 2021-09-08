@@ -139,3 +139,9 @@ int AveragePSD::Process(ChannelData* chdata)
   hist->Scale(1./hist->GetEntries());
   return 0;
 }
+
+void AveragePSD::Reset()
+{
+  for(auto it : _plots)
+    it.second->Reset();
+}

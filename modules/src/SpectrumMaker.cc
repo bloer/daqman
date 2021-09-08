@@ -193,3 +193,9 @@ int SpectrumMaker::Process(EventPtr evt)
   _branch->SetAddress(0);
   return 0;
 }
+
+void SpectrumMaker::Reset()
+{
+  if(_histo)
+    _histo->Reset();
+}
