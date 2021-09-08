@@ -289,6 +289,13 @@ int main(int argc, char** argv)
 	  case 'P':
 	    plotter->TogglePause();
 	    break;
+          case 'r':
+          case 'R':
+            Message(INFO)<<"Resetting spectra...\n";
+            psd->Reset();
+            for(SpectrumMaker* spec : spectra)
+              spec->Reset();
+            break;
 	  default:
 	    Message(ERROR)<<"Unknown control character '"<<c<<"'\n";
 	  };
