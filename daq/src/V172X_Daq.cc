@@ -435,6 +435,12 @@ int V172X_Daq::Update()
 	  trigmaskbit = (1<<(i/2));
 	trigger_mask |= (trigmaskbit * channel.enable_trigger_source);
 	trigger_out_mask |= (trigmaskbit * channel.enable_trigger_out);
+        if(info && channel.enabled && (channel.enable_trigger_source 
+                                       || channel.enable_trigger_out) ){
+          std::stringstream ss;
+          ss<<"ch_"<<channel.label<<"__threshold";
+          info->SetMetadata(ss.str(), channel.threshold);
+        }
 	//write the per-channel stuff
 	//Zero suppression threshold
 	uint32_t zs_thresh = (1<<31) * channel.zs_polarity +
