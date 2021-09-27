@@ -29,9 +29,9 @@ rootbase=$(basename $rootbase ".out.gz")
 #determine the number of events in the run
 echo "Determining total number of events in raw data..."
 
-nevents=$(./run_info -a n $rawfile | grep -w "events" | sed -e 's/^.*events \([0-9]*\) .*$/\1/g') 
+nevents=$(run_info -a n $rawfile | grep -w "events" | cut -d ' ' -f 2) 
 
-if [ $? -ne 0 ] ; then
+if [ $? -ne 0 ] || [ -z "$nevents" ] ; then
     echo "There was an error opening the raw datafile $rawfile...aborting!"
     exit 2
 fi
@@ -58,7 +58,7 @@ while [ $njobs -lt $nthreads ] ; do
     logfile="${rootbase}_${jobnum}.log"
     logfiles="$logfiles $logfile"
     echo "Events $min to $max logged in $logfile"
-    ./genroot $genroot_args $range --rootfile $rootfile $rawfile >$logfile &  
+    genroot $genroot_args $range --rootfile $rootfile $rawfile >$logfile &  
     jobs="$jobs $!"
     (( njobs++ ))
 done
@@ -89,7 +89,7 @@ cat > $macro <<EOF
 EOF
 
 echo "Chaining output root files..."
-$olddir/daqroot -b -q $macro >/dev/null
+daqroot -b -q $macro >/dev/null
 
 #cleanup
 rm -f $macro
