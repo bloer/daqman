@@ -41,7 +41,7 @@
 #include <fstream>
 #include <algorithm>
 #include <numeric>
-#include "boost/thread/thread.hpp"
+#include <thread>
 bool stop_run = false;
 
 //utility class to print run statistics
@@ -306,7 +306,7 @@ int main(int argc, char** argv)
 	if(reader){
 	  evt = reader->GetNextEvent();
 	  if(testmode_dt>0)
-	    boost::this_thread::sleep(boost::posix_time::millisec(testmode_dt));
+	    std::this_thread::sleep_for(std::chrono::milliseconds(testmode_dt));
 	}
 	else
 	  evt = daq.GetNextEvent(500000);

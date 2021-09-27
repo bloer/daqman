@@ -99,9 +99,9 @@ public:
   bool _initialized;         ///< Is hardware initialized?
   V172X_Params _params;      ///< parameters for the boards
   long _triggers;            ///< total triggers received so far
-  boost::mutex _vme_mutex;   ///< mutex protecting write access to VME
+  std::mutex _vme_mutex;   ///< mutex protecting write access to VME
   //std::vector<uint8_t*> raw_buffer;
-  //std::vector<boost::mutex*> buffer_mutex;
+  //std::vector<std::mutex*> buffer_mutex;
   
   
   //low-level utility functions

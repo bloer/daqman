@@ -8,9 +8,9 @@
 #define ASYNC_EVENT_HANDLER_h
 
 #ifndef SINGLETHREAD
-#include "boost/thread/condition_variable.hpp"
-#include "boost/thread/mutex.hpp"
-#include "boost/thread.hpp"
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 #endif
 
 #include "Event.hh"
@@ -69,9 +69,9 @@ private:
   std::vector<AsyncEventHandler*> _receivers; ///< processors to receive events
   EventPtr _next_event;                  ///< next event ready for processing
 #ifndef SINGLETHREAD
-  boost::condition_variable _event_ready; ///< signal wakeup
-  boost::mutex _event_mutex;      ///< control access to next_event
-  boost::shared_ptr<boost::thread> _threadptr; ///< manage our own thread
+  std::condition_variable _event_ready; ///< signal wakeup
+  std::mutex _event_mutex;      ///< control access to next_event
+  std::shared_ptr<std::thread> _threadptr; ///< manage our own thread
 #endif
 };  
 

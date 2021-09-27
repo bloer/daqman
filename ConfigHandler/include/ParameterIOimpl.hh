@@ -12,8 +12,8 @@
 #include <set>
 #include <map>
 #include <algorithm>
-#include "boost/type_traits.hpp"
-#include "boost/shared_ptr.hpp"
+#include <type_traits>
+#include <memory>
 
 #include "VParameterNode.hh"
 /** @namespace ParameterIOimpl
@@ -27,13 +27,13 @@ namespace ParameterIOimpl{
   template <class T> inline std::ostream& writeleaf(std::ostream& out, 
 						    const T& t,
 						    bool showhelp, int indent, 
-						    const boost::true_type&)
+						    const std::true_type&)
   { return t.WriteTo(out, showhelp, indent); }
   //T is not a VParameterNode: 
   template <class T> inline std::ostream& writeleaf(std::ostream& out, 
 						    const T& t,
 						    bool showhelp, int indent, 
-						    const boost::false_type&)
+						    const std::false_type&)
   { return out<<t; }
   
   
@@ -52,7 +52,7 @@ namespace ParameterIOimpl{
 					       bool showhelp=false, 
 					       int indent=0)
   { return writeleaf(out, t, showhelp, indent, 
-		     boost::is_base_of<VParameterNode,T>()); }
+		     std::is_base_of<VParameterNode,T>()); }
   
   //overload for pointers and shared pointers
   
@@ -63,16 +63,16 @@ namespace ParameterIOimpl{
 					       bool showhelp=false, 
 					       int indent=0)
   { return writeleaf(out, *t, showhelp, indent, 
-		     boost::is_base_of<VParameterNode,T>()); }
+		     std::is_base_of<VParameterNode,T>()); }
   
-  template<class T> inline std::istream& read(std::istream& in, boost::shared_ptr<T>& t)
+  template<class T> inline std::istream& read(std::istream& in, std::shared_ptr<T>& t)
   { return in >> *(t.get()); }
   
-  template<class T> inline std::ostream& write(std::ostream& out, const boost::shared_ptr<T>& t,
+  template<class T> inline std::ostream& write(std::ostream& out, const std::shared_ptr<T>& t,
 					       bool showhelp=false, 
 					       int indent=0)
   { return writeleaf(out, *(t.get()), showhelp, indent, 
-		     boost::is_base_of<VParameterNode,T>()); }
+		     std::is_base_of<VParameterNode,T>()); }
   
   
   
@@ -173,8 +173,8 @@ namespace ParameterIOimpl{
   template<class T> struct Constructor<T*> {
     static T* make() { return new T(); }
   };
-  template<class T> struct Constructor<boost::shared_ptr<T> >{
-    static boost::shared_ptr<T> make() { return boost::shared_ptr<T>(new T());}
+  template<class T> struct Constructor<std::shared_ptr<T> >{
+    static std::shared_ptr<T> make() { return std::shared_ptr<T>(new T());}
   };
   
 };

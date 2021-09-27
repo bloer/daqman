@@ -39,7 +39,7 @@ void ParameterList::CopyPlistRelative(const ParameterList& right)
     switch(newnode->GetNodeType()){
     case FUNCTION:
     case PARAMETER:{
-      boost::shared_ptr<VParameterNode> ptr(newnode);
+      std::shared_ptr<VParameterNode> ptr(newnode);
       _deleter.push_back(ptr);
       _parameters.insert(std::make_pair(it->first,newnode));
       break;

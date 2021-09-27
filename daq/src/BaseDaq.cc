@@ -14,11 +14,11 @@
 #include "RawEvent.hh"
 #include <iostream>
 #include <stdexcept>
-#include <boost/ref.hpp>
-#include "boost/date_time/posix_time/posix_time_duration.hpp"
+#include <chrono>
 #include "Message.hh"
 
 bool BaseDaq::_is_constructed = false;
+typedef std::unique_lock<std::mutex> scoped_lock;
 
 BaseDaq::BaseDaq() throw(std::runtime_error): 
   _status(NORMAL), _is_running(false)
@@ -55,7 +55,7 @@ int BaseDaq::StartRun()
     _events_queue.pop();
   //start new thread and run collect data
   Message(DEBUG)<<"Starting daq thread..."<<std::endl;
-  _daq_thread = boost::thread(boost::ref(*this));
+  _daq_thread = std::thread(std::ref(*this));
   
   return 0;
 }
@@ -68,7 +68,7 @@ int BaseDaq::EndRun(bool force)
       return 1;
     }
     else _is_running = false;
-    if(force) _daq_thread.interrupt();
+    //if(force) _daq_thread.interrupt(); //no way to interrupt c++11 threads...
     _daq_thread.join();
     /*while(!_events_queue.empty()){
       RawEventPtr next = _events_queue.front();
@@ -85,7 +85,7 @@ RawEventPtr BaseDaq::GetNextEvent(int timeout)
     return RawEventPtr();
   }
   //lock the mutex guarding the processed event queue
-  boost::mutex::scoped_lock lock(_queue_mutex);
+  scoped_lock lock(_queue_mutex);
   if(!_is_running && _events_queue.empty())
     return RawEventPtr();
   //loop until an event is ready
@@ -93,7 +93,8 @@ RawEventPtr BaseDaq::GetNextEvent(int timeout)
     if(timeout < 0)
       _event_ready.wait(lock);
     else{
-      if(!_event_ready.timed_wait(lock,boost::posix_time::microsec(timeout)))
+      if(_event_ready.wait_for(lock,std::chrono::microseconds(timeout)) ==
+         std::cv_status::timeout)
 	return RawEventPtr();
     }
   }
@@ -106,7 +107,7 @@ RawEventPtr BaseDaq::GetNextEvent(int timeout)
 
 void BaseDaq::PostEvent(RawEventPtr event)
 {
-  boost::mutex::scoped_lock lock(_queue_mutex);
+  scoped_lock lock(_queue_mutex);
   do{
     if(_events_queue.size() < MAX_QUEUE_SIZE){
       _events_queue.push(event);
@@ -119,7 +120,7 @@ void BaseDaq::PostEvent(RawEventPtr event)
 		      <<"to be processed; trigger rate may be too high.\n"
 		      <<"\tThere will be deadtime in this run.\n";
     }
-    _event_taken.timed_wait(lock, boost::posix_time::microsec(1000));
+    _event_taken.wait_for(lock, std::chrono::microseconds(1000));
     
   }while(_is_running);
     

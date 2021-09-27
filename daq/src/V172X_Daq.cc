@@ -18,9 +18,7 @@ which inherits from the WARP_VetoDAQ class.
 #include <time.h>
 #include <bitset>
 #include <algorithm>
-#include "boost/ref.hpp"
-#include "boost/timer.hpp"
-#include "boost/date_time/posix_time/posix_time_duration.hpp"
+#include <chrono>
 #include <sstream>
 #include <numeric>
 
@@ -244,7 +242,7 @@ int V172X_Daq::waitforstable(int32_t handle, int channel)
     }
     Message(DEBUG2)<<"Waiting for channel "<<channel<<" to stabilize. "
 		   <<"Status is "<<std::hex<<status<<"\n";
-    boost::this_thread::sleep(boost::posix_time::millisec(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     ReadDigitizerRegister(VME_ChStatus +channel*0x100, handle);
   }
   return 0;
@@ -293,7 +291,7 @@ int V172X_Daq::CalibrateBaselines(int boardnum)
       }
     }
     //wait until the board is ready to take data
-    boost::this_thread::sleep(boost::posix_time::millisec(1500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
     uint32_t status = 0;
     int count = 0;
     while( !((status&0x100) && (status&0xc0)) ){
@@ -612,7 +610,7 @@ int V172X_Daq::Update()
     }
 
     //wait 2 seconds for DC offset levels to adjust
-    boost::this_thread::sleep(boost::posix_time::millisec(1500));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1500));
   }
   catch(...){ 
     return -3;
@@ -780,8 +778,8 @@ void V172X_Daq::DataAcquisitionLoop()
     case cvTimeoutError:
       if(!use_interrupt){
         //sleep for the timeout interval
-        boost::this_thread::sleep(
-           boost::posix_time::millisec(_params.trigger_timeout_ms));
+        auto tsleep = std::chrono::milliseconds(_params.trigger_timeout_ms);
+        std::this_thread::sleep_for(tsleep);
       }
       if(_params.auto_trigger){
         Message(DEBUG)<<"Triggering...\n";

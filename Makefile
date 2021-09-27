@@ -75,19 +75,6 @@ BUILDLIBS   := lib/libdaqman.so
 
 #some more optional libraries
 CAENLIBS    := -L/usr/local/lib64 -lCAENVME -lCAENDigitizer
-#specific hack to avoid corrupted libs on blackhole
-ifeq ("$(shell /bin/hostname)","blackhole.lngs.infn.it")
-THREADLIBS  += -L/usr/local/lib64/boost -lboost_thread -lboost_date_time
-else
-ifeq ("$(shell /sbin/ldconfig -p | grep libboost_thread-mt.so)","") 
-THREADLIBS  += -L/usr/local/lib64/boost -lboost_thread -lboost_date_time
-else
-THREADLIBS  += -lboost_thread-mt -lboost_date_time-mt
-endif
-endif
-#for Princeton machines
-#CAENLIBS    := -lCAENVME 
-#THREADLIBS  += -lboost_thread -lboost_date_time
 
 #hardcode the path to link against daqman
 LIBS     += -Wl,-rpath,$(PWD)/lib 
@@ -163,7 +150,7 @@ DICTOBJS    := $(DICTO) $(DICTOBJS:.hh=.o)
 DICTOBJS    := $(filter $(DICTOBJS),$(OBJS))
 #DICTCALLS   := $(addsuffix +,$(DICTHEADS))
 #build a library of our dictionary classes
-BUILDLIBS   += lib/libDict.so
+BUILDLIBS   += lib/libDict.so lib/Dictionaries_rdict.pcm
 endif
 
 all: $(DICT) libs $(BIN) 
@@ -183,13 +170,16 @@ lib/libDict.so: $(DICTOBJS)
 	@echo "  [LD]  $@"
 	@$(CXX) $(LDFLAGS) $(LIBFLAGS) $(LIBS) $^ -o $@ > /dev/null
 
-LinkDef.h: $(DICTHEADS)
+lib/Dictionaries_rdict.pcm: $(DICT)
+	mv $(notdir $@) $@
+
+LinkDef.h: $(DICTHEADS) scripts/generateLinkDef.sh
 	@echo "  Generating $@..."
 	@./scripts/generateLinkDef.sh >$@
 
 $(DICT): $(DICTHEADS) LinkDef.h
 	@echo "  [ROOTCINT] $@"
-	@rootcint -f $@ -c $(CXXFLAGS) -p $^ 
+	rootcint -f $(INCLUDES) $@ $^ 
 
 $(BIN): bin/%: exe/%.o lib/libdaqman.so  
 	@echo "  [LD]  $@" 

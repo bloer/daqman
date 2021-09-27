@@ -9,7 +9,7 @@
 
 #include <vector>
 #include <stdint.h>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 #include "V172X_Params.hh"
 
 //forward declaration
@@ -71,5 +71,5 @@ private:
     @brief wrap a V172X_Event* into a boos shared_ptr
     @ingroup daqman
 */
-typedef boost::shared_ptr<V172X_Event> V172XEventPtr;
+typedef std::shared_ptr<V172X_Event> V172XEventPtr;
 #endif

@@ -20,8 +20,8 @@
 #include <map>
 #include <iostream>
 #include "Message.hh"
-#include <boost/type_traits.hpp>
-#include <boost/shared_ptr.hpp>
+#include <type_traits>
+#include <memory>
 
 
 /** @class ParameterList
@@ -95,18 +95,18 @@ protected:
   ParMap _parameters;   ///< all registered subparameters
   
   /// Safely deletes subparams
-  std::vector<boost::shared_ptr<VParameterNode> > _deleter; 
+  std::vector<std::shared_ptr<VParameterNode> > _deleter; 
   
   /// Actual implementation to register a variable as a sub parameter
   template<class T> 
   int RegisterParameterImp(const std::string& key, T& par, 
 			   const std::string& helptext,
-			   const boost::false_type&);
+			   const std::false_type&);
   /// Register a whole ParameterList as a sub parameter
   template<class T>
   int RegisterParameterImp(const std::string& key, T& par, 
 			   const std::string& helptext, 
-			   const boost::true_type&);
+			   const std::true_type&);
 };
 
 template<class T>
@@ -121,7 +121,7 @@ inline int ParameterList::RegisterParameter(const std::string& key,
   }
   
   return RegisterParameterImp(key,par,helptext,
-			      boost::is_base_of<VParameterNode,T>());
+			      std::is_base_of<VParameterNode,T>());
 }
 
 //template specialization
@@ -129,7 +129,7 @@ template<class T>
 inline int ParameterList::RegisterParameterImp(const std::string& key, 
 					       T& par,
 					       const std::string& helptext,
-					       const boost::true_type&)
+					       const std::true_type&)
 {
   _parameters.insert(std::make_pair(key,&par));
   return 0;
@@ -139,9 +139,9 @@ template<class T>
 inline int ParameterList::RegisterParameterImp(const std::string& key,
 					       T& par,
 					       const std::string& helptext,
-					       const boost::false_type&)
+					       const std::false_type&)
 {
-  boost::shared_ptr<VParameterNode> ptr(new Parameter<T>(par, key, helptext) );
+  std::shared_ptr<VParameterNode> ptr(new Parameter<T>(par, key, helptext) );
   _deleter.push_back(ptr);
   _parameters.insert(std::make_pair(key,ptr.get()));
   return 0;
@@ -158,7 +158,7 @@ inline int ParameterList::RegisterFunction(const std::string& key,
     return -1;
   }
   
-  boost::shared_ptr<VParameterNode> 
+  std::shared_ptr<VParameterNode> 
     ptr(new ConfigFunctor<R,W>(reader, writer, key, helptext));
   _deleter.push_back(ptr);
   _parameters.insert(std::make_pair(key, ptr.get()));
