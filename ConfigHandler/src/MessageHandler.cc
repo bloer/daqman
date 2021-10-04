@@ -10,10 +10,9 @@
 #include <exception>
 #include <stdexcept>
 #ifndef SINGLETHREAD
-#include "boost/ref.hpp"
-#include "boost/thread/thread.hpp"
-#include "boost/thread/mutex.hpp"
-#include "boost/thread/condition.hpp"
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #endif
 
 #include "ConfigHandler.hh"
@@ -134,9 +133,9 @@ MessageHandler::MessageHandler() : _default_threshold(INFO)
   AddMessenger(INFO,PrintToStream());
 #ifndef SINGLETHREAD
   _kill_thread=false;
-  _inbox_mutex = new boost::mutex;
-  _message_waiting = new boost::condition_variable;
-  _delivery_thread = new boost::thread(boost::ref(*this));
+  _inbox_mutex = new std::mutex;
+  _message_waiting = new std::condition_variable;
+  _delivery_thread = new std::thread(std::ref(*this));
 #endif
   ConfigHandler* config = ConfigHandler::GetInstance();
   config->RegisterParameter("verbosity", _default_threshold,
@@ -216,7 +215,7 @@ void MessageHandler::Deliver(std::ostringstream* msg, MESSAGE_LEVEL level,
 
 void MessageHandler::Post(std::ostringstream* msg, MESSAGE_LEVEL level)
 {
-  boost::unique_lock<boost::mutex> lock(*_inbox_mutex);
+  std::unique_lock<std::mutex> lock(*_inbox_mutex);
   _inbox.push( MsgData(msg,level));
   _message_waiting->notify_one();
 }
@@ -225,7 +224,7 @@ void MessageHandler::operator()()
 {
   //return;
   while(1){
-    boost::unique_lock<boost::mutex> lock(*_inbox_mutex);
+    std::unique_lock<std::mutex> lock(*_inbox_mutex);
     while(_inbox.empty() && !_kill_thread ){
       _message_waiting->wait(lock);
       //mutex is unlocked while waiting

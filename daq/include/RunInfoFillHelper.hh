@@ -8,19 +8,16 @@
 
 class TGCanvas;
 class TGCompositeFrame;
-#ifndef __CINT__
 #include "ParameterList.hh"
-#endif
+
 
 /**@class DialogField
    @brief utility class to handle querying user for metadata
    Completely hide this from root!
  */
-#ifndef __CINT__
+
 class DialogField : public ParameterList{
-#else
-class DialogField {
-#endif
+
 public:
   DialogField(const std::string& field_="", const std::string& desc = "",
               bool required_=true, const std::string& default_="");

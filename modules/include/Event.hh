@@ -9,8 +9,8 @@
 
 #include "RawEvent.hh"
 #include "EventData.hh"
-#include <boost/shared_ptr.hpp>
-typedef boost::shared_ptr<EventData> EventDataPtr;
+#include <memory>
+typedef std::shared_ptr<EventData> EventDataPtr;
 
 class BaseModule;
 
@@ -36,5 +36,5 @@ private:
   EventDataPtr _event_data;     ///< pointer to processed data segment
 };
 
-typedef boost::shared_ptr<Event> EventPtr;
+typedef std::shared_ptr<Event> EventPtr;
 #endif

@@ -10,9 +10,9 @@
 #include <queue>
 #include <string>
 #include <stdexcept>
-#include "boost/thread/thread.hpp"
-#include "boost/thread/condition.hpp"
-#include "boost/thread/mutex.hpp"
+#include <thread>
+#include <condition_variable>
+#include <mutex>
 #include "RawEvent.hh"
 
 
@@ -101,7 +101,7 @@ public:
   virtual int EndRun(bool force=false);
 
 
-  /// called ONLY by the boost thread; should not be called directly ever
+  /// called ONLY by the std thread; should not be called directly ever
   void operator()(){ DataAcquisitionLoop(); }
 
 protected:
@@ -119,11 +119,11 @@ protected:
   STATUS _status; ///< the status of the daq
   
   bool _is_running; ///< is the daq running?
-  boost::thread _daq_thread; ///< thread controlling the daq
+  std::thread _daq_thread; ///< thread controlling the daq
   std::queue<RawEventPtr> _events_queue; ///< queue of raw events
-  boost::mutex _queue_mutex; ///< mutex governing the events queue
-  boost::condition_variable _event_ready; ///<  condition signalling new event
-  boost::condition_variable _event_taken; ///< signal a spot ready in queue
+  std::mutex _queue_mutex; ///< mutex governing the events queue
+  std::condition_variable _event_ready; ///<  condition signalling new event
+  std::condition_variable _event_taken; ///< signal a spot ready in queue
   static const size_t MAX_QUEUE_SIZE = 10; ///< max events allowed in queue
   int _n_queuesize_warnings;   ///< number of queue overflow warnings generated
 };

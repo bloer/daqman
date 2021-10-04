@@ -15,19 +15,14 @@
 /** @class VDatabaseInterface
     @brief Defines an abstract class for storing a loading runinfo from a database 
 **/
-//hide ParameterList from cint
-#ifndef __CINT__
+
 #include "ParameterList.hh"
 class VDatabaseInterface : public ParameterList{
-#else
-class VDatabaseInterface{
-#endif 
+
 
 public:
   VDatabaseInterface(const std::string& defkeyname="DatabaseInterface") : 
-#ifndef __CINT__
     ParameterList(defkeyname,"Store and load runinfo from a database"),
-#endif
     _connected(false) {}
   virtual ~VDatabaseInterface() { if(_connected) Disconnect(); }
   
@@ -94,6 +89,6 @@ private:
 #endif
 
  
-  ClassDef(VDatabaseInterface,0)
+  ClassDef(VDatabaseInterface,1)
 };
 #endif

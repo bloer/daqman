@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 #include <vector>
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 /** @class RawEvent
     @brief Container for a block of raw data
@@ -108,9 +108,9 @@ private:
 };
 
 /** @typedef RawEventPtr
-    wrap a RawEvent* into a boost shared_ptr
+    wrap a RawEvent* into a std shared_ptr
     
     @ingroup daqman
 */
-typedef boost::shared_ptr<RawEvent> RawEventPtr;
+typedef std::shared_ptr<RawEvent> RawEventPtr;
 #endif

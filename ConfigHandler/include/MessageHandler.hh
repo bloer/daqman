@@ -16,13 +16,9 @@
 #include <set>
 #include <queue>
 #include <time.h>
-
-//forward declarations needed for boost threads
-namespace boost{
-  class thread;
-  class mutex;
-  class condition_variable;
-};
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 /// @addtogroup ConfigHandler
 /// @{
@@ -136,11 +132,11 @@ private:
   };
   std::queue<MsgData> _inbox;
   bool _kill_thread;
-  boost::mutex* _inbox_mutex;
-  boost::condition_variable* _message_waiting;
-  boost::thread* _delivery_thread;
+  std::mutex* _inbox_mutex;
+  std::condition_variable* _message_waiting;
+  std::thread* _delivery_thread;
 public:
-  void operator()(); ///< should only be called by a boost thread
+  void operator()(); ///< should only be called by a std thread
 
 };
 

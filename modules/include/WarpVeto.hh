@@ -9,7 +9,6 @@
 #define WARPVETO_h
 
 #include "BaseModule.hh"
-#include <boost/smart_ptr.hpp>
 
 /** @class WarpVeto
     @brief Calculate in real-time simple statistics for the warp veto

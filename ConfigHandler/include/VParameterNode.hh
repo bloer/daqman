@@ -11,6 +11,7 @@
 #ifndef VPARAMETERNODE_h
 #define VPARAMETERNODE_h
 #include  <iostream>
+#include "Rtypes.h"
 
 /** @class VParameterNode
     @brief Abstract class with iostream operators to store specialized 
@@ -70,6 +71,8 @@ protected:
 public:
   bool hasread; ///< Does the underlying object have an istream overload?
   bool haswrite; ///< Does the underlying object have ostream overload?
+
+  ClassDef(VParameterNode, 0);
 };
 
 //inline the redirect overloads

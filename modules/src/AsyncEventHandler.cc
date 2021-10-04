@@ -3,8 +3,10 @@
 #include "EventHandler.hh"
 
 #ifndef SINGLETHREAD
-#include "boost/thread.hpp"
-#include "boost/thread/mutex.hpp"
+#include <thread>
+#include <mutex>
+#include <chrono>
+typedef std::unique_lock<std::mutex> scoped_lock;
 #endif
 
 AsyncEventHandler::AsyncEventHandler() : _running(false), _sleeptime(0), 
@@ -52,11 +54,11 @@ int AsyncEventHandler::Process(EventPtr evt)
   Message(WARNING)<<"Attempt to use AsyncEventHandler with multithreading disabled!\n";
 #else
   if(_running){
-    boost::mutex::scoped_lock lock(_event_mutex);
+    scoped_lock lock(_event_mutex);
     while(_blocking && _next_event){
       //only go if _next_event is not filled
       lock.unlock();
-      boost::this_thread::sleep(boost::posix_time::millisec(1));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
       lock.lock();
     }
     _next_event = evt; 
@@ -82,8 +84,8 @@ int AsyncEventHandler::StartRunning()
   }
   //start a thread
   _running = true;
-  typedef boost::shared_ptr<boost::thread> _tp;
-  _threadptr = _tp(new boost::thread(boost::ref(*this)));
+  typedef std::shared_ptr<std::thread> _tp;
+  _threadptr = _tp(new std::thread(std::ref(*this)));
   Message(DEBUG)<<"AsyncEventHandler running on thread "<<_threadptr->get_id()
 		<<" with sleeptime "<<_sleeptime<<" ms "
 		<<" contains "<<enabled_modules<<" enabled modules.\n";
@@ -114,12 +116,12 @@ void AsyncEventHandler::operator()()
 {
 #ifndef SINGLETHREAD
   //need a dummy mutex for condition_variable to work
-  boost::mutex dummy_mutex;
+  std::mutex dummy_mutex;
   EventPtr current_event;
   while(_running){
-    boost::mutex::scoped_lock lock(_event_mutex);
+    scoped_lock lock(_event_mutex);
     if(!_next_event || _next_event == current_event){
-      _event_ready.timed_wait(lock,boost::posix_time::millisec(1000));
+      _event_ready.wait_for(lock,std::chrono::milliseconds(1000));
       continue;
     }
     //if we get here, process the event
@@ -129,7 +131,7 @@ void AsyncEventHandler::operator()()
     for(size_t i=0; i<_modules.size(); ++i){
       if(_modules[i]->enabled){
 	_modules[i]->HandleEvent(current_event);
-	//boost::this_thread::sleep(boost::posix_time::microsec(2) );
+	//std::this_thread::sleep_for(std::chrono::microseconds(2) );
       }
     }
     //done processing, hand off to receivers
@@ -138,10 +140,10 @@ void AsyncEventHandler::operator()()
     }
     if(!_blocking){
       if(_sleeptime>0){
-	boost::this_thread::sleep(boost::posix_time::millisec(_sleeptime));
+	std::this_thread::sleep_for(std::chrono::milliseconds(_sleeptime));
       }
       else
-	boost::this_thread::yield();
+	std::this_thread::yield();
     }
     else{
       _next_event = EventPtr();
