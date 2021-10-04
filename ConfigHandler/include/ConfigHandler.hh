@@ -236,7 +236,7 @@ bool ConfigHandler::LoadCreateParameterList(T*& par,
 					    bool registerme)
 {
   if(!par){
-    boost::shared_ptr<VParameterNode> ptr(par = new T);
+    std::shared_ptr<VParameterNode> ptr(par = new T);
     //..par = ptr.get();
     _deleter.push_back(ptr);
   }

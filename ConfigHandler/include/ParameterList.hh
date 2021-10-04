@@ -22,6 +22,7 @@
 #include "Message.hh"
 #include <type_traits>
 #include <memory>
+#include "Rtypes.h"
 
 
 /** @class ParameterList
@@ -107,6 +108,7 @@ protected:
   int RegisterParameterImp(const std::string& key, T& par, 
 			   const std::string& helptext, 
 			   const std::true_type&);
+  ClassDef(ParameterList,0);
 };
 
 template<class T>

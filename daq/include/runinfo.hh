@@ -10,9 +10,7 @@
 #include "Rtypes.h"
 #include "TObject.h"
 #include "RunInfoFillHelper.hh"
-#ifndef __CINT__
 #include "ParameterList.hh"
-#endif 
 
 
 #include <vector>
@@ -28,11 +26,8 @@ class TMacro;
     @brief Contains default and user-specified metadata about each run acquired
 */
 
-#ifndef __CINT__
 class runinfo : public ParameterList, public TObject{
-#else
-class runinfo : public TObject{
-#endif
+
 public:
   /// default constructor does nothing
   runinfo(long id=-1);
@@ -153,7 +148,7 @@ public:
   
   
 private:
-  ClassDef(runinfo,4);
+  ClassDef(runinfo,5);
 }; 
 
 
