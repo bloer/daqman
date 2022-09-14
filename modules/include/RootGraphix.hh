@@ -45,7 +45,7 @@ public:
   /** @typedef Lock
       @brief wrap a TLockGuard into a std::auto_ptr
   */
-  typedef std::auto_ptr<TLockGuard> Lock;
+  typedef std::unique_ptr<TLockGuard> Lock;
   /// Lock the mutex protecting graphics updates to make changes safely
   Lock AcquireLock();
 

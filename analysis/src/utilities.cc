@@ -180,15 +180,15 @@ void DrawOperationsBoxes(bool drawbubble, bool drawrecirc)
   gPad->GetRangeAxis(dummy,y1,dummy,y2);
   
   if(drawbubble){
-    double x1[] = { TTimeStamp(2010,04,15,11,06,55,0,0).GetSec(),
-		    TTimeStamp(2010,05,03,15,51,33,0,0).GetSec(),
-		    TTimeStamp(2010,05,05,10,54,19,0,0).GetSec(),
-		    TTimeStamp(2010,05,05,15,57,33,0,0).GetSec()
+      double x1[] = { static_cast<double>(TTimeStamp(2010,04,15,11,06,55,0,0).GetSec()),
+	  static_cast<double>(TTimeStamp(2010,05,03,15,51,33,0,0).GetSec()),
+	  static_cast<double>(TTimeStamp(2010,05,05,10,54,19,0,0).GetSec()),
+	  static_cast<double>(TTimeStamp(2010,05,05,15,57,33,0,0).GetSec())
     };
-    double x2[] = { TTimeStamp(2010,04,15,16,38,48,0,0).GetSec(),
-		    TTimeStamp(2010,05,03,20,40,28,0,0).GetSec(),
-		    TTimeStamp(2010,05,05,13,29,44,0,0).GetSec(),
-		    TTimeStamp(2010,05,05,18,45,53,0,0).GetSec()
+      double x2[] = { static_cast<double>(TTimeStamp(2010,04,15,16,38,48,0,0).GetSec()),
+	  static_cast<double>(TTimeStamp(2010,05,03,20,40,28,0,0).GetSec()),
+	  static_cast<double>(TTimeStamp(2010,05,05,13,29,44,0,0).GetSec()),
+	  static_cast<double>(TTimeStamp(2010,05,05,18,45,53,0,0).GetSec())
     };
     
     for(size_t i = 0; i < sizeof(x1)/sizeof(double); i++){
@@ -199,11 +199,11 @@ void DrawOperationsBoxes(bool drawbubble, bool drawrecirc)
     }
   }
   if(drawrecirc){
-    double x1[] = { TTimeStamp(2010,05,07,15,40,32,0,0).GetSec(),
-		    TTimeStamp(2010,07,14,17,23,00,0,0).GetSec()
+      double x1[] = { static_cast<double>(TTimeStamp(2010,05,07,15,40,32,0,0).GetSec()),
+	  static_cast<double>(TTimeStamp(2010,07,14,17,23,00,0,0).GetSec())
     };
-    double x2[] = { TTimeStamp(2010,05,07,23,59,59,0,0).GetSec(),
-		    TTimeStamp(2010,07,15,16,27,21,0,0).GetSec()
+      double x2[] = { static_cast<double>(TTimeStamp(2010,05,07,23,59,59,0,0).GetSec()),
+	  static_cast<double>(TTimeStamp(2010,07,15,16,27,21,0,0).GetSec())
     };
     for(size_t i = 0; i < sizeof(x1)/sizeof(double); i++){
       TBox b(x1[i], y1, x2[i], y2);
