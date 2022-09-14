@@ -22,7 +22,7 @@
 	#include <stdint.h>
 #endif
 #include <stdlib.h>
-#include <malloc.h>
+//#include <malloc.h>
 #include "CAENVMEoslib.h"
 #include "CAENVMEtypes.h"
 

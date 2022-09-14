@@ -100,7 +100,7 @@ int RootGraphix::Process(EventPtr evt)
 
 RootGraphix::Lock RootGraphix::AcquireLock()
 {
-  return std::auto_ptr<TLockGuard>(new TLockGuard(&_mutex));
+  return std::unique_ptr<TLockGuard>(new TLockGuard(&_mutex));
 }
 
 TCanvas* RootGraphix::GetCanvas(const char* title, bool preventclose, 
